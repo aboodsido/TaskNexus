@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../Widgets/cached_network_image.dart';
 import '../../Constants/consts.dart';
+import '../../Widgets/select_image_widget.dart';
 
 class SignUpScreen extends StatefulWidget {
   @override
@@ -28,6 +31,8 @@ class _SignUpScreenState extends State<SignUpScreen>
   final FocusNode _fullNameFocusNode = FocusNode();
   final FocusNode _phoneNumFocusNode = FocusNode();
   final FocusNode _companyFocusNode = FocusNode();
+
+  File? imageFile;
 
   void submitFormOnSignUp() {
     final isValid = _signUpFormKey.currentState!.validate();
@@ -134,38 +139,49 @@ class _SignUpScreenState extends State<SignUpScreen>
                         ),
                       ),
                       const SizedBox(height: 8),
-                      TextFormField(
-                        textInputAction: TextInputAction.next,
-                        focusNode: _fullNameFocusNode,
-                        onEditingComplete: () => FocusScope.of(context)
-                            .requestFocus(_emailFocusNode),
-                        validator: (value) {
-                          if (value!.isEmpty || !value.contains(" ")) {
-                            return "You should enter a valid Full Name";
-                          }
-                          return null;
-                        },
-                        keyboardType: TextInputType.text,
-                        controller: _fullNameTextController,
-                        decoration: InputDecoration(
-                          prefixIcon: const Icon(Icons.person),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: const BorderSide(width: 0),
+                      Row(
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: TextFormField(
+                              textInputAction: TextInputAction.next,
+                              focusNode: _fullNameFocusNode,
+                              onEditingComplete: () => FocusScope.of(context)
+                                  .requestFocus(_emailFocusNode),
+                              validator: (value) {
+                                if (value!.isEmpty || !value.contains(" ")) {
+                                  return "You should enter a valid Full Name";
+                                }
+                                return null;
+                              },
+                              keyboardType: TextInputType.text,
+                              controller: _fullNameTextController,
+                              decoration: InputDecoration(
+                                prefixIcon: const Icon(Icons.person),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: const BorderSide(width: 0),
+                                ),
+                                hintText: 'Jack Mickael',
+                                hintStyle: GoogleFonts.montserrat(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                                filled: true,
+                                fillColor: kTextFieldColor,
+                                errorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: const BorderSide(
+                                      width: 0, color: Colors.red),
+                                ),
+                              ),
+                            ),
                           ),
-                          hintText: 'Jack Mickael',
-                          hintStyle: GoogleFonts.montserrat(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w400,
+                          Expanded(
+                            flex: 1,
+                            child: SelectImageWidget(imageFile: imageFile),
                           ),
-                          filled: true,
-                          fillColor: kTextFieldColor,
-                          errorBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide:
-                                const BorderSide(width: 0, color: Colors.red),
-                          ),
-                        ),
+                        ],
                       ),
                       const SizedBox(height: 10),
                       Text(
@@ -380,3 +396,4 @@ class _SignUpScreenState extends State<SignUpScreen>
     ));
   }
 }
+
