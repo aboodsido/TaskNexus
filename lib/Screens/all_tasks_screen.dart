@@ -121,7 +121,7 @@ class _AllTasksScreenState extends State<AllTasksScreen> {
                   width: size.width * 0.6,
                   height: size.height * 0.4,
                   child: ListView.builder(
-                    itemCount: categories.length,
+                    itemCount: taskCategories.length,
                     itemBuilder: (BuildContext context, int index) {
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 20),
@@ -139,7 +139,7 @@ class _AllTasksScreenState extends State<AllTasksScreen> {
                               ),
                               const SizedBox(width: 7),
                               Text(
-                                categories[index],
+                                taskCategories[index],
                               ),
                             ],
                           ),

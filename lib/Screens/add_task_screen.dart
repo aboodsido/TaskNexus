@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:tasks_management/Widgets/drawer_widget.dart';
 
 import '../Constants/consts.dart';
+import '../Widgets/submit_button_widget.dart';
 
 class AddTaskScreen extends StatefulWidget {
   const AddTaskScreen({super.key});
@@ -133,25 +134,8 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                           SizedBox(
                             width: double.infinity,
                             height: 48,
-                            child: ElevatedButton(
-                              style: ButtonStyle(
-                                shape: MaterialStatePropertyAll(
-                                  RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                ),
-                                backgroundColor:
-                                    MaterialStatePropertyAll(Colors.pink[800]),
-                              ),
-                              onPressed: addTask,
-                              child: Text(
-                                "Add Task",
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
+                            child: SubmitButtonWidget(
+                                buttonText: 'Add task', submitFunc: addTask),
                           ),
                           const SizedBox(height: 20),
                         ],
@@ -258,22 +242,21 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
             ],
           ),
           content: SizedBox(
-            height: size.height * 0.5,
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 SizedBox(
                   width: size.width * 0.6,
                   height: size.height * 0.4,
                   child: ListView.builder(
-                    itemCount: categories.length,
+                    itemCount: taskCategories.length,
                     itemBuilder: (BuildContext context, int index) {
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 12),
                         child: GestureDetector(
                           onTap: () {
                             setState(() {
-                              _categoryController.text = categories[index];
+                              _categoryController.text = taskCategories[index];
                             });
                             Navigator.canPop(context)
                                 ? Navigator.pop(context)
@@ -287,7 +270,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                               ),
                               const SizedBox(width: 7),
                               Text(
-                                categories[index],
+                                taskCategories[index],
                               ),
                             ],
                           ),

@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../Constants/consts.dart';
 
+// ignore: must_be_immutable
 class DrawerWidget extends StatelessWidget {
   DrawerWidget({
     super.key,
@@ -105,6 +106,8 @@ Future<dynamic> buildLogoutDialog(BuildContext context) {
           TextButton(
             onPressed: () {
               //todo: logout implementation
+              Navigator.popAndPushNamed(context, 'LoginScreen');
+              // Navigator.pushReplacementNamed(context, 'LoginScreen');
             },
             child: const Text(
               'Ok',

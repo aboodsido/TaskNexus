@@ -16,7 +16,7 @@ TextStyle kTaskDiscFont = GoogleFonts.montserrat(
   color: Colors.grey,
 );
 
-List<String> categories = [
+List<String> taskCategories = [
   'Business',
   'Programming',
   'Information Technology',
@@ -24,5 +24,15 @@ List<String> categories = [
   'Human Resources',
   'Design',
   'Accounting',
+];
+List<String> jobCategories = [
+  'Manager',
+  'Team Leader',
+  'Desginer',
+  'Web Designer',
+  'Web Developer',
+  'Mobile Developer',
+  'Marketing',
+  'Digital Marketing',
 ];
 

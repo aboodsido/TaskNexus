@@ -31,7 +31,6 @@ class ProfileScreen extends StatelessWidget {
                   children: [
                     CircleAvatar(
                       radius: 40,
-                      // backgroundColor: scaffoldColor,
                       backgroundImage: NetworkImage(
                           'https://cdn-icons-png.flaticon.com/512/4086/4086679.png'),
                     ),

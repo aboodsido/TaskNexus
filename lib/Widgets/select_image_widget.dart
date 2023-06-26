@@ -8,7 +8,7 @@ class SelectImageWidget extends StatelessWidget {
     required this.imageFile,
   });
 
-  final File? imageFile;
+  final File? imageFile; 
 
   @override
   Widget build(BuildContext context) {

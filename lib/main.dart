@@ -36,7 +36,7 @@ class MyApp extends StatelessWidget {
           'RegisteredWorkersScreen': (context) => RegisteredWorkersScreen(),
           'ProfileScreen': (context) => ProfileScreen(),
         },
-        initialRoute: 'LoginScreen',
+        initialRoute: 'SignUpScreen',
       ),
     );
   }

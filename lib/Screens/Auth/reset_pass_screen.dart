@@ -2,9 +2,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../Widgets/submit_button_widget.dart';
 
 import '../../Widgets/cached_network_image.dart';
-import '../../Constants/consts.dart';
+import '../../Widgets/text_form_field_widget.dart';
+import '../../Widgets/title_textfield_widget.dart';
 
 class ResetPassScreen extends StatefulWidget {
   @override
@@ -58,99 +60,61 @@ class _ResetPassScreenState extends State<ResetPassScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: Stack(
-      children: [
-        CachedNetworkImageWidget(animation: _animation),
-        SingleChildScrollView(
-          child: Container(
-            margin: const EdgeInsets.only(top: 150, left: 30, right: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Reset Password",
-                  style: GoogleFonts.montserrat(
-                    fontSize: 35,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+      body: Stack(
+        children: [
+          CachedNetworkImageWidget(animation: _animation),
+          SingleChildScrollView(
+            child: Container(
+              margin: const EdgeInsets.only(top: 150, left: 30, right: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Reset Password",
+                    style: GoogleFonts.montserrat(
+                      fontSize: 35,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 25),
-                Form(
-                  key: _forgetPassFormKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Email",
-                        style: GoogleFonts.montserrat(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        validator: (value) {
-                          if (value!.isEmpty || !value.contains("@")) {
-                            return "You should enter a valid email";
-                          }
-                          return null;
-                        },
-                        keyboardType: TextInputType.emailAddress,
-                        controller: _emailTextController,
-                        decoration: InputDecoration(
-                          prefixIcon: const Icon(Icons.mail_outline),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: const BorderSide(width: 0),
-                          ),
+                  const SizedBox(height: 25),
+                  Form(
+                    key: _forgetPassFormKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const TitleTextField(title: "Email"),
+                        const SizedBox(height: 8),
+                        TextFormFieldWidget(
+                          textInputType: TextInputType.emailAddress,
+                          prefixIcon: Icons.mail_outline,
                           hintText: 'example@gmail.com',
-                          hintStyle: GoogleFonts.montserrat(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w400,
-                          ),
-                          filled: true,
-                          fillColor: kTextFieldColor,
-                          errorBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide:
-                                const BorderSide(width: 0, color: Colors.red),
-                          ),
+                          enabled: true,
+                          fieldTextController: _emailTextController,
+                          validatorFunc: (value) {
+                            if (value!.isEmpty || !value.contains("@")) {
+                              return "You should enter a valid email";
+                            }
+                            return null;
+                          },
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 42),
-                SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: ElevatedButton(
-                    style: ButtonStyle(
-                      shape: MaterialStatePropertyAll(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      backgroundColor:
-                          const MaterialStatePropertyAll(Colors.red),
-                    ),
-                    onPressed: submitFormOnForgetPass,
-                    child: Text(
-                      "Reset Now",
-                      style: GoogleFonts.montserrat(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
+                      ],
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 42),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: SubmitButtonWidget(
+                        submitFunc: submitFormOnForgetPass,
+                        buttonText: "Reset Now"),
+                  ),
+                ],
+              ),
             ),
-          ),
-        )
-      ],
-    ));
+          )
+        ],
+      ),
+    );
   }
 }
