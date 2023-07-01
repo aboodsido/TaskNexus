@@ -1,11 +1,58 @@
 import 'package:flutter/material.dart';
-import 'package:tasks_management/Widgets/drawer_widget.dart';
+import '../Widgets/drawer_widget.dart';
+
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../Widgets/contact_widget.dart';
 
 class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    void launchWhatsApp({required String phone}) async {
+      Uri url = Uri.parse("whatsapp://send?phone=$phone");
+      try {
+        await launchUrl(url);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text("Whatsapp is not installed"),
+          backgroundColor: Colors.red,
+        ));
+      }
+    }
+
+    void launchEmail(
+        {required String email,
+        required String subject,
+        required String body}) async {
+      String encodedSubject = Uri.encodeComponent(subject);
+      String encodedBody = Uri.encodeComponent(body);
+      Uri url =
+          Uri.parse("mailto:$email?subject=$encodedSubject&body=$encodedBody");
+      try {
+        await launchUrl(url);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text("Could not send email for some issues"),
+          backgroundColor: Colors.red,
+        ));
+      }
+    }
+
+    void launchCallNumber({
+      required String phoneNumber,
+    }) async {
+      Uri url = Uri.parse("tel:$phoneNumber");
+      try {
+        await launchUrl(url);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text("Could not call this number"),
+          backgroundColor: Colors.red,
+        ));
+      }
+    }
+
     Color scaffoldColor = Theme.of(context).scaffoldBackgroundColor;
 
     return Scaffold(
@@ -91,6 +138,7 @@ class ProfileScreen extends StatelessWidget {
                         color: Colors.white,
                         onPressed: () {
                           //todo: Perform call action
+                          launchCallNumber(phoneNumber: '0568843787');
                         },
                       ),
                     ),
@@ -101,16 +149,21 @@ class ProfileScreen extends StatelessWidget {
                         color: Colors.white,
                         onPressed: () {
                           //todo: Perform email action
+                          launchEmail(
+                              email: 'odod41907@gmail.com',
+                              subject: 'hello',
+                              body: 'this is pre-filled message');
                         },
                       ),
                     ),
                     CircleAvatar(
                       backgroundColor: Colors.green,
                       child: IconButton(
-                        icon: const Icon(Icons.message),
+                        icon: const FaIcon(FontAwesomeIcons.whatsapp),
                         color: Colors.white,
                         onPressed: () {
                           //todo: Perform WhatsApp action
+                          launchWhatsApp(phone: '+972568843787');
                         },
                       ),
                     ),

@@ -1,8 +1,8 @@
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 Color kTextFieldColor = const Color.fromRGBO(240, 240, 240, 0.7);
+Color kIndigoColor = Colors.indigo.shade800;
 
 TextStyle textFont = GoogleFonts.montserrat(fontWeight: FontWeight.w500);
 
@@ -11,6 +11,7 @@ TextStyle kTaskTitleFont = GoogleFonts.montserrat(
   fontWeight: FontWeight.bold,
   color: Colors.indigo.shade800,
 );
+
 TextStyle kTaskDiscFont = GoogleFonts.montserrat(
   fontSize: 15,
   color: Colors.grey,
@@ -35,4 +36,3 @@ List<String> jobCategories = [
   'Marketing',
   'Digital Marketing',
 ];
-

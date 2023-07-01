@@ -1,17 +1,81 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image_picker/image_picker.dart';
 
-class SelectImageWidget extends StatelessWidget {
+import '../Constants/consts.dart';
+
+class SelectImageWidget extends StatefulWidget {
   const SelectImageWidget({
     super.key,
-    required this.imageFile,
   });
 
-  final File? imageFile; 
+  @override
+  State<SelectImageWidget> createState() => _SelectImageWidgetState();
+}
+
+class _SelectImageWidgetState extends State<SelectImageWidget> {
+  File? imageFile;
+
+  void pickImageWithCamera() async {
+    XFile? pickedFile = await ImagePicker()
+        .pickImage(source: ImageSource.camera, maxWidth: 1080, maxHeight: 1080);
+    cropImage(pickedFile!.path);
+  }
+
+  void pickImageFromGallery() async {
+    XFile? pickedFile = await ImagePicker().pickImage(
+        source: ImageSource.gallery, maxWidth: 1080, maxHeight: 1080);
+    cropImage(pickedFile!.path);
+  }
+
+  void cropImage(filePath) async {
+    CroppedFile? cropImage = await ImageCropper()
+        .cropImage(sourcePath: filePath, maxHeight: 1080, maxWidth: 1080);
+    if (cropImage != null) {
+      setState(() {
+        File cImage = File(cropImage.path);
+        imageFile = cImage;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    void showImageDialog() {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) => AlertDialog(
+          title: Text(
+            'Please Choose an option',
+            style: textFont,
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              rowImage(
+                  title: 'Camera',
+                  icon: Icons.camera_alt,
+                  onTap: () {
+                    pickImageWithCamera();
+                    Navigator.pop(context);
+                  }),
+              const SizedBox(height: 15),
+              rowImage(
+                  title: 'Gallery',
+                  icon: Icons.photo,
+                  onTap: () {
+                    pickImageFromGallery();
+                    Navigator.pop(context);
+                  }),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Stack(
       children: [
         Container(
@@ -31,7 +95,7 @@ class SelectImageWidget extends StatelessWidget {
           ),
         ),
         InkWell(
-          onTap: () {},
+          onTap: showImageDialog,
           child: Container(
             padding: const EdgeInsets.all(3),
             decoration: BoxDecoration(
@@ -55,6 +119,23 @@ class SelectImageWidget extends StatelessWidget {
           ),
         )
       ],
+    );
+  }
+
+  InkWell rowImage({String? title, VoidCallback? onTap, IconData? icon}) {
+    return InkWell(
+      onTap: onTap,
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.amber),
+          const SizedBox(width: 5),
+          Text(
+            title!,
+            style: GoogleFonts.montserrat(
+                color: Colors.amber, fontWeight: FontWeight.w500),
+          ),
+        ],
+      ),
     );
   }
 }

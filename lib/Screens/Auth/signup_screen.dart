@@ -1,8 +1,12 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:tasks_management/Widgets/submit_button_widget.dart';
+import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
+import '../../utils/auth.dart';
+import '../../Widgets/submit_button_widget.dart';
 
 import '../../Widgets/cached_network_image.dart';
 import '../../Constants/consts.dart';
@@ -21,12 +25,12 @@ class _SignUpScreenState extends State<SignUpScreen>
   late Animation<double> _animation;
 
   bool _passwordVisible = true;
-  TextEditingController? _emailTextController;
-  TextEditingController? _fullNameTextController;
-  TextEditingController? _phoneNumTextController;
+  final TextEditingController _emailTextController = TextEditingController();
+  final TextEditingController _fullNameTextController = TextEditingController();
+  final TextEditingController _phoneNumTextController = TextEditingController();
   final TextEditingController _companyTextController =
       TextEditingController(text: 'Company Position');
-  TextEditingController? _passwordTextController;
+  final TextEditingController _passwordTextController = TextEditingController();
 
   final _signUpFormKey = GlobalKey<FormState>();
 
@@ -38,22 +42,71 @@ class _SignUpScreenState extends State<SignUpScreen>
 
   File? imageFile;
 
-  void submitFormOnSignUp() {
+  void showSnackBar(BuildContext context, String text, Color color) {
+    final snackBar = SnackBar(
+      content: Text(text),
+      backgroundColor: color,
+      behavior: SnackBarBehavior.floating,
+      elevation: 20,
+      padding: const EdgeInsets.all(10),
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  bool isLoading = false;
+
+  void submitFormOnSignUp() async {
     final isValid = _signUpFormKey.currentState!.validate();
     FocusScope.of(context).unfocus();
     if (isValid) {
-      print("done");
-    } else {
-      print("not done");
+      setState(() {
+        isLoading = true;
+      });
+      try {
+        await FirebaseAuthClass()
+            .signUp(_emailTextController.text, _passwordTextController.text);
+        // ignore: use_build_context_synchronously
+        showSnackBar(context, 'Sign up Done Successfully', Colors.green);
+
+        final User? user = _auth.currentUser;
+        final uid = user!.uid;
+
+        await FirebaseFirestore.instance.collection('users').doc(uid).set({
+          'id': uid,
+          'fullName': _fullNameTextController.text,
+          'email': _emailTextController.text,
+          'phoneNumber': _phoneNumTextController.text,
+          'companyPosition': _companyTextController.text,
+          'imageUrl': 'imageUrl',
+        });
+
+        // ignore: use_build_context_synchronously
+        Navigator.pop(context);
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'weak-password') {
+          showSnackBar(
+              context, 'The password provided is too weak.', Colors.red);
+        } else if (e.code == 'email-already-in-use') {
+          showSnackBar(context, 'The account already exists for that email.',
+              Colors.red);
+        }
+      } catch (e) {
+        showSnackBar(context, '$e', Colors.red);
+      }
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
   @override
   void dispose() {
     _animationController.dispose();
-    _emailTextController?.dispose();
-    _passwordTextController?.dispose();
-    _fullNameTextController?.dispose();
+    _emailTextController.dispose();
+    _passwordTextController.dispose();
+    _fullNameTextController.dispose();
     _companyTextController.dispose();
     _emailFocusNode.dispose();
     _passFocusNode.dispose();
@@ -64,6 +117,11 @@ class _SignUpScreenState extends State<SignUpScreen>
 
   @override
   void initState() {
+    animationFunc();
+    super.initState();
+  }
+
+  void animationFunc() {
     _animationController =
         AnimationController(vsync: this, duration: const Duration(seconds: 20));
     _animation =
@@ -78,7 +136,6 @@ class _SignUpScreenState extends State<SignUpScreen>
             }
           });
     _animationController.forward();
-    super.initState();
   }
 
   @override
@@ -87,198 +144,207 @@ class _SignUpScreenState extends State<SignUpScreen>
     return GestureDetector(
       //* this is when the user click anywhere outside the text fields , it will unfocus the field :)
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-      child: Scaffold(
+      child: ModalProgressHUD(
+        inAsyncCall: isLoading,
+        child: Scaffold(
           body: Stack(
-        children: [
-          CachedNetworkImageWidget(animation: _animation),
-          SingleChildScrollView(
-            child: Container(
-              margin: const EdgeInsets.only(top: 100, left: 30, right: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Sign Up",
-                    style: GoogleFonts.montserrat(
-                      fontSize: 35,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-                  Row(
+            children: [
+              CachedNetworkImageWidget(animation: _animation),
+              SingleChildScrollView(
+                child: Container(
+                  margin: const EdgeInsets.only(top: 100, left: 30, right: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Already have an account? ",
+                        "Sign Up",
                         style: GoogleFonts.montserrat(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w500,
+                          fontSize: 35,
+                          fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
                       ),
-                      GestureDetector(
-                        child: Text(
-                          "Login",
-                          style: GoogleFonts.montserrat(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.cyanAccent,
+                      const SizedBox(height: 5),
+                      Row(
+                        children: [
+                          Text(
+                            "Already have an account? ",
+                            style: GoogleFonts.montserrat(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
                           ),
-                        ),
-                        onTap: () {
-                          Navigator.of(context)
-                              .pushReplacementNamed('LoginScreen');
-                        },
+                          GestureDetector(
+                            child: Text(
+                              "Login",
+                              style: GoogleFonts.montserrat(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.cyanAccent,
+                              ),
+                            ),
+                            onTap: () {
+                              Navigator.of(context)
+                                  .pushReplacementNamed('LoginScreen');
+                            },
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 25),
-                  Form(
-                    key: _signUpFormKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const TitleTextField(title: "Full Name"),
-                        const SizedBox(height: 5),
-                        Row(
+                      const SizedBox(height: 25),
+                      Form(
+                        key: _signUpFormKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
-                                flex: 3,
-                                child: TextFormFieldWidget(
-                                  currentFocusNode: _fullNameFocusNode,
-                                  enabled: true,
-                                  hintText: 'Jack Mickel',
-                                  prefixIcon: Icons.person,
-                                  textInputType: TextInputType.name,
-                                  fieldTextController: _fullNameTextController,
-                                  requestFocusNode: _emailFocusNode,
-                                  validatorFunc: (value) {
-                                    if (value!.isEmpty ||
-                                        !value.contains(' ')) {
-                                      return "You should enter a valid Full Name";
-                                    }
-                                    return null;
+                            const TitleTextField(title: "Full Name"),
+                            const SizedBox(height: 5),
+                            Row(
+                              children: [
+                                Expanded(
+                                  flex: 3,
+                                  child: TextFormFieldWidget(
+                                    currentFocusNode: _fullNameFocusNode,
+                                    enabled: true,
+                                    hintText: 'Jack Mickel',
+                                    prefixIcon: Icons.person,
+                                    textInputType: TextInputType.name,
+                                    fieldTextController:
+                                        _fullNameTextController,
+                                    requestFocusNode: _emailFocusNode,
+                                    validatorFunc: (value) {
+                                      if (value!.isEmpty ||
+                                          !value.contains(' ')) {
+                                        return "You should enter a valid Full Name";
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                ),
+                                const Expanded(
+                                  flex: 1,
+                                  child: SelectImageWidget(),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            const TitleTextField(title: "Email"),
+                            const SizedBox(height: 8),
+                            TextFormFieldWidget(
+                              currentFocusNode: _emailFocusNode,
+                              textInputType: TextInputType.emailAddress,
+                              prefixIcon: Icons.mail_outline,
+                              hintText: 'example@gmail.com',
+                              enabled: true,
+                              fieldTextController: _emailTextController,
+                              requestFocusNode: _passFocusNode,
+                              validatorFunc: (value) {
+                                if (value!.isEmpty || !value.contains("@")) {
+                                  return "You should enter a valid email";
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 10),
+                            const TitleTextField(title: "Password"),
+                            const SizedBox(height: 8),
+                            TextFormField(
+                              textInputAction: TextInputAction.next,
+                              focusNode: _passFocusNode,
+                              onEditingComplete: () => FocusScope.of(context)
+                                  .requestFocus(_phoneNumFocusNode),
+                              validator: (value) {
+                                if (value!.isEmpty || value.length < 7) {
+                                  return "You should enter a valid password";
+                                }
+                                return null;
+                              },
+                              controller: _passwordTextController,
+                              obscureText: _passwordVisible,
+                              decoration: InputDecoration(
+                                suffixIcon: IconButton(
+                                  icon: _passwordVisible
+                                      ? const Icon(Icons.visibility)
+                                      : const Icon(Icons.visibility_off),
+                                  onPressed: () {
+                                    setState(
+                                      () {
+                                        _passwordVisible = !_passwordVisible;
+                                      },
+                                    );
                                   },
-                                )),
-                            Expanded(
-                              flex: 1,
-                              child: SelectImageWidget(imageFile: imageFile),
+                                ),
+                                prefixIcon: const Icon(Icons.lock_outline),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: const BorderSide(width: 0),
+                                ),
+                                hintText: '*************',
+                                hintStyle: GoogleFonts.montserrat(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                                filled: true,
+                                fillColor: kTextFieldColor,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            const TitleTextField(title: 'Phone Number'),
+                            const SizedBox(height: 8),
+                            TextFormFieldWidget(
+                              enabled: true,
+                              currentFocusNode: _phoneNumFocusNode,
+                              requestFocusNode: _companyFocusNode,
+                              prefixIcon: Icons.phone,
+                              textInputType: TextInputType.phone,
+                              hintText: '+970 56 -------',
+                              fieldTextController: _phoneNumTextController,
+                              validatorFunc: (value) {
+                                if (value!.isEmpty) {
+                                  return "You should enter a valid Phone Number";
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 15),
+                            const TitleTextField(title: "Company Position"),
+                            const SizedBox(height: 5),
+                            InkWell(
+                              onTap: () {
+                                showCategoryDialog(size);
+                              },
+                              child: TextFormFieldWidget(
+                                currentFocusNode: _companyFocusNode,
+                                enabled: false,
+                                hintText: '',
+                                prefixIcon: Icons.account_tree_outlined,
+                                textInputType: TextInputType.none,
+                                fieldTextController: _companyTextController,
+                              ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 10),
-                        const TitleTextField(title: "Email"),
-                        const SizedBox(height: 8),
-                        TextFormFieldWidget(
-                          currentFocusNode: _emailFocusNode,
-                          textInputType: TextInputType.emailAddress,
-                          prefixIcon: Icons.mail_outline,
-                          hintText: 'example@gmail.com',
-                          enabled: true,
-                          fieldTextController: _emailTextController,
-                          requestFocusNode: _passFocusNode,
-                          validatorFunc: (value) {
-                            if (value!.isEmpty || !value.contains("@")) {
-                              return "You should enter a valid email";
-                            }
-                            return null;
+                      ),
+                      const SizedBox(height: 42),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 48,
+                        child: SubmitButtonWidget(
+                          buttonText: 'Sign up',
+                          submitFunc: () {
+                            submitFormOnSignUp();
                           },
                         ),
-                        const SizedBox(height: 10),
-                        const TitleTextField(title: "Password"),
-                        const SizedBox(height: 8),
-                        TextFormField(
-                          textInputAction: TextInputAction.next,
-                          focusNode: _passFocusNode,
-                          onEditingComplete: () => FocusScope.of(context)
-                              .requestFocus(_phoneNumFocusNode),
-                          validator: (value) {
-                            if (value!.isEmpty || value.length < 7) {
-                              return "You should enter a valid password";
-                            }
-                            return null;
-                          },
-                          controller: _passwordTextController,
-                          obscureText: _passwordVisible,
-                          decoration: InputDecoration(
-                            suffixIcon: IconButton(
-                              icon: _passwordVisible
-                                  ? const Icon(Icons.visibility)
-                                  : const Icon(Icons.visibility_off),
-                              onPressed: () {
-                                setState(
-                                  () {
-                                    _passwordVisible = !_passwordVisible;
-                                  },
-                                );
-                              },
-                            ),
-                            prefixIcon: const Icon(Icons.lock_outline),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(width: 0),
-                            ),
-                            hintText: '*************',
-                            hintStyle: GoogleFonts.montserrat(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w400,
-                            ),
-                            filled: true,
-                            fillColor: kTextFieldColor,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        const TitleTextField(title: 'Phone Number'),
-                        const SizedBox(height: 8),
-                        TextFormFieldWidget(
-                          enabled: true,
-                          currentFocusNode: _phoneNumFocusNode,
-                          requestFocusNode: _companyFocusNode,
-                          prefixIcon: Icons.phone,
-                          textInputType: TextInputType.phone,
-                          hintText: '+970 56 -------',
-                          fieldTextController: _phoneNumTextController,
-                          validatorFunc: (value) {
-                            if (value!.isEmpty) {
-                              return "You should enter a valid Phone Number";
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 15),
-                        const TitleTextField(title: "Company Position"),
-                        const SizedBox(height: 5),
-                        InkWell(
-                          onTap: () {
-                            showCategoryDialog(size);
-                          },
-                          child: TextFormFieldWidget(
-                            currentFocusNode: _companyFocusNode,
-                            enabled: false,
-                            hintText: '',
-                            prefixIcon: Icons.account_tree_outlined,
-                            textInputType: TextInputType.none,
-                            fieldTextController: _companyTextController,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 20)
+                    ],
                   ),
-                  const SizedBox(height: 42),
-                  SizedBox(
-                      width: double.infinity,
-                      height: 48,
-                      child: SubmitButtonWidget(
-                        buttonText: 'Sign up',
-                        submitFunc: submitFormOnSignUp,
-                      )),
-                  const SizedBox(height: 20)
-                ],
-              ),
-            ),
-          )
-        ],
-      )),
+                ),
+              )
+            ],
+          ),
+        ),
+      ),
     );
   }
 

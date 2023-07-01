@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:tasks_management/utils/auth.dart';
 
 import '../Constants/consts.dart';
 
@@ -20,9 +21,11 @@ class DrawerWidget extends StatelessWidget {
             accountName: Text('Tasks Management',
                 style: GoogleFonts.montserrat(fontSize: 20)),
             accountEmail: Text('Welcome!', style: textFont),
-            currentAccountPicture: CircleAvatar(
+            currentAccountPicture: ClipRRect(
+              borderRadius: BorderRadius.circular(100),
               child: Image.asset(
                 'assets/images/appicon.jpg',
+                fit: BoxFit.fill,
               ),
             ),
           ),
@@ -104,10 +107,11 @@ Future<dynamic> buildLogoutDialog(BuildContext context) {
             ),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               //todo: logout implementation
+              await FirebaseAuthClass().signOut();
+              // ignore: use_build_context_synchronously
               Navigator.popAndPushNamed(context, 'LoginScreen');
-              // Navigator.pushReplacementNamed(context, 'LoginScreen');
             },
             child: const Text(
               'Ok',

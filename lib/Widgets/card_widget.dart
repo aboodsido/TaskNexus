@@ -43,7 +43,7 @@ class CardWidget extends StatelessWidget {
                   ),
                   const SizedBox(width: 10),
                   Container(
-                      height: 30, width: 1, color: Colors.indigo.shade800),
+                      height: 30, width: 1, color: kIndigoColor),
                   const SizedBox(width: 10),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

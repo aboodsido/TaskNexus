@@ -10,8 +10,8 @@ class TextFormFieldWidget extends StatelessWidget {
     this.requestFocusNode,
     this.fieldTextController,
     required this.textInputType,
-    required this.prefixIcon,
-    required this.hintText,
+    this.prefixIcon,
+    this.hintText,
     this.validatorFunc,
     required this.enabled,
   });
@@ -20,8 +20,8 @@ class TextFormFieldWidget extends StatelessWidget {
   final FocusNode? requestFocusNode;
   final TextEditingController? fieldTextController;
   final TextInputType textInputType;
-  final IconData prefixIcon;
-  final String hintText;
+  final IconData? prefixIcon;
+  final String? hintText;
   final String? Function(String?)? validatorFunc;
   final bool enabled;
 

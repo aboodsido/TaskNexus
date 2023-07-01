@@ -50,7 +50,9 @@ class _AllTasksScreenState extends State<AllTasksScreen> {
           imageUrl: 'assets/images/done.jpg',
           cardTailIcon: Icons.arrow_forward_ios,
           iconOnTap: () {},
-          cardOnTap: () {},
+          cardOnTap: () {
+            Navigator.pushNamed(context, "TaskDetailScreen");
+          },
         ),
         itemCount: 10,
       ),

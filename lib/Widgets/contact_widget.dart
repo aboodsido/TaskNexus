@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../Constants/consts.dart';
+
 class ContactDetail extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -28,7 +30,7 @@ class ContactDetail extends StatelessWidget {
         const SizedBox(width: 8),
         Text(
           value,
-          style: TextStyle(fontSize: 16, color: Colors.indigo.shade800),
+          style: TextStyle(fontSize: 16, color: kIndigoColor),
         ),
       ],
     );
