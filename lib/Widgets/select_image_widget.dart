@@ -8,8 +8,11 @@ import 'package:image_picker/image_picker.dart';
 import '../Constants/consts.dart';
 
 class SelectImageWidget extends StatefulWidget {
-  const SelectImageWidget({
+  File? imageFile;
+
+  SelectImageWidget({
     super.key,
+    required this.imageFile,
   });
 
   @override
@@ -17,18 +20,24 @@ class SelectImageWidget extends StatefulWidget {
 }
 
 class _SelectImageWidgetState extends State<SelectImageWidget> {
-  File? imageFile;
-
   void pickImageWithCamera() async {
-    XFile? pickedFile = await ImagePicker()
-        .pickImage(source: ImageSource.camera, maxWidth: 1080, maxHeight: 1080);
-    cropImage(pickedFile!.path);
+    try {
+      XFile? pickedFile = await ImagePicker().pickImage(
+          source: ImageSource.camera, maxWidth: 1080, maxHeight: 1080);
+      cropImage(pickedFile!.path);
+    } on Exception catch (e) {
+      print(e);
+    }
   }
 
   void pickImageFromGallery() async {
-    XFile? pickedFile = await ImagePicker().pickImage(
-        source: ImageSource.gallery, maxWidth: 1080, maxHeight: 1080);
-    cropImage(pickedFile!.path);
+    try {
+      XFile? pickedFile = await ImagePicker().pickImage(
+          source: ImageSource.gallery, maxWidth: 1080, maxHeight: 1080);
+      cropImage(pickedFile!.path);
+    } on Exception catch (e) {
+      print(e);
+    }
   }
 
   void cropImage(filePath) async {
@@ -37,7 +46,7 @@ class _SelectImageWidgetState extends State<SelectImageWidget> {
     if (cropImage != null) {
       setState(() {
         File cImage = File(cropImage.path);
-        imageFile = cImage;
+        widget.imageFile = cImage;
       });
     }
   }
@@ -61,6 +70,7 @@ class _SelectImageWidgetState extends State<SelectImageWidget> {
                   onTap: () {
                     pickImageWithCamera();
                     Navigator.pop(context);
+                    print('done');
                   }),
               const SizedBox(height: 15),
               rowImage(
@@ -69,6 +79,7 @@ class _SelectImageWidgetState extends State<SelectImageWidget> {
                   onTap: () {
                     pickImageFromGallery();
                     Navigator.pop(context);
+                    print('done');
                   }),
             ],
           ),
@@ -86,12 +97,12 @@ class _SelectImageWidgetState extends State<SelectImageWidget> {
           margin: const EdgeInsets.only(top: 5, left: 5, right: 5),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(20),
-            child: imageFile == null
+            child: widget.imageFile == null
                 ? Image.network(
                     fit: BoxFit.fill,
                     'https://t4.ftcdn.net/jpg/00/84/67/19/360_F_84671939_jxymoYZO8Oeacc3JRBDE8bSXBWj0ZfA9.jpg',
                   )
-                : Image.file(imageFile!),
+                : Image.file(widget.imageFile!),
           ),
         ),
         InkWell(
@@ -105,7 +116,7 @@ class _SelectImageWidgetState extends State<SelectImageWidget> {
                   color: Colors.white,
                 ),
                 shape: BoxShape.circle),
-            child: imageFile == null
+            child: widget.imageFile == null
                 ? const Icon(
                     Icons.add_a_photo,
                     color: Colors.white,

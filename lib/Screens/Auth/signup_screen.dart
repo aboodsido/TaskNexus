@@ -1,16 +1,17 @@
 import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
+import 'package:tasks_management/utils/add_user.dart';
 import '../../utils/auth.dart';
 import '../../Widgets/submit_button_widget.dart';
 
 import '../../Widgets/cached_network_image.dart';
 import '../../Constants/consts.dart';
-import '../../Widgets/select_image_widget.dart';
 import '../../Widgets/text_form_field_widget.dart';
 import '../../Widgets/title_textfield_widget.dart';
 
@@ -53,14 +54,16 @@ class _SignUpScreenState extends State<SignUpScreen>
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-
   bool isLoading = false;
 
   void submitFormOnSignUp() async {
     final isValid = _signUpFormKey.currentState!.validate();
     FocusScope.of(context).unfocus();
     if (isValid) {
+      if (imageFile == null) {
+        showSnackBar(context, 'You must provide an Image', Colors.red);
+        return;
+      }
       setState(() {
         isLoading = true;
       });
@@ -70,17 +73,12 @@ class _SignUpScreenState extends State<SignUpScreen>
         // ignore: use_build_context_synchronously
         showSnackBar(context, 'Sign up Done Successfully', Colors.green);
 
-        final User? user = _auth.currentUser;
-        final uid = user!.uid;
-
-        await FirebaseFirestore.instance.collection('users').doc(uid).set({
-          'id': uid,
-          'fullName': _fullNameTextController.text,
-          'email': _emailTextController.text,
-          'phoneNumber': _phoneNumTextController.text,
-          'companyPosition': _companyTextController.text,
-          'imageUrl': 'imageUrl',
-        });
+        await AddUser().addUsersData(
+            fullName: _fullNameTextController.text,
+            email: _emailTextController.text,
+            companyPosition: _companyTextController.text,
+            phoneNumber: _phoneNumTextController.text,
+            imageFile: imageFile!);
 
         // ignore: use_build_context_synchronously
         Navigator.pop(context);
@@ -119,6 +117,37 @@ class _SignUpScreenState extends State<SignUpScreen>
   void initState() {
     animationFunc();
     super.initState();
+  }
+
+  void pickImageWithCamera() async {
+    try {
+      XFile? pickedFile = await ImagePicker().pickImage(
+          source: ImageSource.camera, maxWidth: 1080, maxHeight: 1080);
+      cropImage(pickedFile!.path);
+    } on Exception catch (e) {
+      print(e);
+    }
+  }
+
+  void pickImageFromGallery() async {
+    try {
+      XFile? pickedFile = await ImagePicker().pickImage(
+          source: ImageSource.gallery, maxWidth: 1080, maxHeight: 1080);
+      cropImage(pickedFile!.path);
+    } on Exception catch (e) {
+      print(e);
+    }
+  }
+
+  void cropImage(filePath) async {
+    CroppedFile? cropImage = await ImageCropper()
+        .cropImage(sourcePath: filePath, maxHeight: 1080, maxWidth: 1080);
+    if (cropImage != null) {
+      setState(() {
+        File cImage = File(cropImage.path);
+        imageFile = cImage;
+      });
+    }
   }
 
   void animationFunc() {
@@ -221,9 +250,56 @@ class _SignUpScreenState extends State<SignUpScreen>
                                     },
                                   ),
                                 ),
-                                const Expanded(
+                                Expanded(
                                   flex: 1,
-                                  child: SelectImageWidget(),
+                                  child: Stack(
+                                    children: [
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(21.5),
+                                          border: Border.all(
+                                              width: 2, color: Colors.white),
+                                        ),
+                                        margin: const EdgeInsets.only(
+                                            top: 5, left: 5, right: 5),
+                                        child: ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                          child: imageFile == null
+                                              ? Image.network(
+                                                  fit: BoxFit.fill,
+                                                  'https://t4.ftcdn.net/jpg/00/84/67/19/360_F_84671939_jxymoYZO8Oeacc3JRBDE8bSXBWj0ZfA9.jpg',
+                                                )
+                                              : Image.file(imageFile!),
+                                        ),
+                                      ),
+                                      InkWell(
+                                        onTap: showImageDialog,
+                                        child: Container(
+                                          padding: const EdgeInsets.all(3),
+                                          decoration: BoxDecoration(
+                                              color: Colors.amber,
+                                              border: Border.all(
+                                                width: 2,
+                                                color: Colors.white,
+                                              ),
+                                              shape: BoxShape.circle),
+                                          child: imageFile == null
+                                              ? const Icon(
+                                                  Icons.add_a_photo,
+                                                  color: Colors.white,
+                                                  size: 20,
+                                                )
+                                              : const Icon(
+                                                  Icons.edit,
+                                                  color: Colors.white,
+                                                  size: 20,
+                                                ),
+                                        ),
+                                      )
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
@@ -434,6 +510,58 @@ class _SignUpScreenState extends State<SignUpScreen>
           ),
         );
       },
+    );
+  }
+
+  InkWell rowImage({String? title, VoidCallback? onTap, IconData? icon}) {
+    return InkWell(
+      onTap: onTap,
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.amber),
+          const SizedBox(width: 5),
+          Text(
+            title!,
+            style: GoogleFonts.montserrat(
+                color: Colors.amber, fontWeight: FontWeight.w500),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void showImageDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: Text(
+          'Please Choose an option',
+          style: textFont,
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            rowImage(
+                title: 'Camera',
+                icon: Icons.camera_alt,
+                onTap: () {
+                  pickImageWithCamera();
+                  Navigator.pop(context);
+                  print('done');
+                }),
+            const SizedBox(height: 15),
+            rowImage(
+              title: 'Gallery',
+              icon: Icons.photo,
+              onTap: () {
+                pickImageFromGallery();
+                Navigator.pop(context);
+                print('done');
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

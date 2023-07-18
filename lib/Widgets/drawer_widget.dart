@@ -1,8 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:tasks_management/Screens/profile_screen.dart';
 import 'package:tasks_management/utils/auth.dart';
 
 import '../Constants/consts.dart';
+import '../utils/user_state.dart';
 
 // ignore: must_be_immutable
 class DrawerWidget extends StatelessWidget {
@@ -39,7 +42,12 @@ class DrawerWidget extends StatelessWidget {
           buildListTile(
             icon: Icon(Icons.settings_outlined, color: black),
             onTap: () {
-              Navigator.pushReplacementNamed(context, 'ProfileScreen');
+              FirebaseAuth auth = FirebaseAuth.instance;
+              String userId = auth.currentUser!.uid;
+              Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => ProfileScreen(userId: userId)));
             },
             title: 'My Account',
           ),
@@ -111,7 +119,10 @@ Future<dynamic> buildLogoutDialog(BuildContext context) {
               //todo: logout implementation
               await FirebaseAuthClass().signOut();
               // ignore: use_build_context_synchronously
-              Navigator.popAndPushNamed(context, 'LoginScreen');
+              Navigator.pop(context);
+              // ignore: use_build_context_synchronously
+              Navigator.pushReplacement(context,
+                  MaterialPageRoute(builder: (context) => const UserState()));
             },
             child: const Text(
               'Ok',

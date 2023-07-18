@@ -1,4 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../Widgets/drawer_widget.dart';
 
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -6,7 +9,69 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../Widgets/contact_widget.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
+  final String? userId;
+
+  // ignore: use_key_in_widget_constructors
+  const ProfileScreen({required this.userId});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  FirebaseAuth _auth = FirebaseAuth.instance;
+
+  bool isLoading = false;
+  String phoneNumber = '';
+  String email = '';
+  String name = '';
+  String? imageUrl;
+  String job = '';
+  String joinedAt = '';
+  bool isSameUser = false;
+
+  @override
+  void initState() {
+    getUserData();
+    super.initState();
+  }
+
+  void getUserData() async {
+    isLoading = true;
+    try {
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.userId!)
+          .get();
+
+      if (userDoc == null) {
+        return;
+      } else {
+        setState(() {
+          email = userDoc.get('email');
+          phoneNumber = userDoc.get('phoneNumber');
+          job = userDoc.get('companyPosition');
+          imageUrl = userDoc.get('imageUrl');
+          name = userDoc.get('fullName');
+          Timestamp joinedAtTimestamp = userDoc.get('createdAt');
+          var joinedDate = joinedAtTimestamp.toDate();
+          String formattedDate = DateFormat('d MMMM yyyy').format(joinedDate);
+          joinedAt = formattedDate;
+        });
+        User? user = _auth.currentUser;
+        String uid = user!.uid;
+        //todo: check if same user
+      }
+    } catch (e) {
+      print(e);
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     void launchWhatsApp({required String phone}) async {
@@ -73,35 +138,36 @@ class ProfileScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Row(
+                Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     CircleAvatar(
                       radius: 40,
-                      backgroundImage: NetworkImage(
-                          'https://cdn-icons-png.flaticon.com/512/4086/4086679.png'),
+                      backgroundImage: NetworkImage(imageUrl == null
+                          ? 'https://eitrawmaterials.eu/wp-content/uploads/2016/09/person-icon.png'
+                          : imageUrl!),
                     ),
-                    SizedBox(width: 16),
+                    const SizedBox(width: 16),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'John Doe',
-                            style: TextStyle(
+                            name,
+                            style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          SizedBox(height: 8),
+                          const SizedBox(height: 8),
                           Text(
-                            'Software Engineer',
-                            style: TextStyle(fontSize: 16),
+                            job,
+                            style: const TextStyle(fontSize: 16),
                           ),
-                          SizedBox(height: 8),
+                          const SizedBox(height: 8),
                           Text(
-                            'Joined on: June 1, 2023',
-                            style: TextStyle(fontSize: 16),
+                            'Joined At: $joinedAt',
+                            style: const TextStyle(fontSize: 16),
                           ),
                         ],
                       ),
@@ -116,16 +182,16 @@ class ProfileScreen extends StatelessWidget {
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16),
-                const ContactDetail(
+                ContactDetail(
                   icon: Icons.mail,
-                  label: 'Email',
-                  value: 'john.doe@example.com',
+                  label: 'Email:',
+                  value: email,
                 ),
                 const SizedBox(height: 10),
-                const ContactDetail(
+                ContactDetail(
                   icon: Icons.phone,
-                  label: 'Phone',
-                  value: '+1 (555) 123-4567',
+                  label: 'Phone:',
+                  value: phoneNumber,
                 ),
                 const SizedBox(height: 30),
                 Row(
@@ -138,7 +204,7 @@ class ProfileScreen extends StatelessWidget {
                         color: Colors.white,
                         onPressed: () {
                           //todo: Perform call action
-                          launchCallNumber(phoneNumber: '0568843787');
+                          launchCallNumber(phoneNumber: phoneNumber);
                         },
                       ),
                     ),
@@ -150,7 +216,7 @@ class ProfileScreen extends StatelessWidget {
                         onPressed: () {
                           //todo: Perform email action
                           launchEmail(
-                              email: 'odod41907@gmail.com',
+                              email: email,
                               subject: 'hello',
                               body: 'this is pre-filled message');
                         },
@@ -163,7 +229,7 @@ class ProfileScreen extends StatelessWidget {
                         color: Colors.white,
                         onPressed: () {
                           //todo: Perform WhatsApp action
-                          launchWhatsApp(phone: '+972568843787');
+                          launchWhatsApp(phone: phoneNumber);
                         },
                       ),
                     ),

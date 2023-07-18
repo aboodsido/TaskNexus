@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:tasks_management/utils/user_state.dart';
-import 'Screens/profile_screen.dart';
 import 'Screens/Auth/login_screen.dart';
 import 'Screens/Auth/signup_screen.dart';
 
@@ -40,10 +39,9 @@ class MyApp extends StatelessWidget {
         'AllTasksScreen': (context) => AllTasksScreen(),
         'AddTaskScreen': (context) => AddTaskScreen(),
         'RegisteredWorkersScreen': (context) => RegisteredWorkersScreen(),
-        'ProfileScreen': (context) => ProfileScreen(),
         'TaskDetailScreen': (context) => TaskDetailScreen(),
       },
-      home: UserState(),
+      home: const UserState(),
     );
   }
 }
