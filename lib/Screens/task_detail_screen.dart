@@ -1,18 +1,31 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import '../Widgets/comment_widget.dart';
 import '../Widgets/submit_button_widget.dart';
 
 import '../Constants/consts.dart';
 
 class TaskDetailScreen extends StatefulWidget {
-  const TaskDetailScreen({super.key});
+  final String taskId;
+  final String uploadedBy;
+
+  const TaskDetailScreen(
+      {super.key, required this.taskId, required this.uploadedBy});
 
   @override
   State<TaskDetailScreen> createState() => _TaskDetailScreenState();
 }
 
 class _TaskDetailScreenState extends State<TaskDetailScreen> {
+  @override
+  void initState() {
+    getTaskDetail();
+    getUserUploadedTask();
+    super.initState();
+  }
+
   var textStyle_1 = TextStyle(
     color: kIndigoColor,
     fontWeight: FontWeight.bold,
@@ -27,16 +40,74 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
 
   int selectedButtonIndex = -1;
 
-  void selectButton(int index) {
-    setState(() {
-      selectedButtonIndex = index;
-    });
-  }
-
   bool isVisible = false;
   TextEditingController commentFieldController = TextEditingController();
 
- 
+  String authorName = '';
+  String authorPosition = '';
+  String authorImage = '';
+  String uploadedOn = '';
+  String deadlineDate = '';
+  String deadlineDateTimeStamp = '';
+  String taskDescription = '';
+  String taskTitle = '';
+  bool isDone = false;
+  bool isDeadlineAvailable = false;
+  List<String> taskComments = [];
+
+  void getUserUploadedTask() async {
+    try {
+      DocumentSnapshot userkDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.uploadedBy)
+          .get();
+
+      if (userkDoc == null) {
+        return;
+      } else {
+        setState(() {
+          authorName = userkDoc.get('fullName');
+          authorPosition = userkDoc.get('companyPosition');
+          authorImage = userkDoc.get('imageUrl');
+        });
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  void getTaskDetail() async {
+    try {
+      DocumentSnapshot taskDoc = await FirebaseFirestore.instance
+          .collection('tasks')
+          .doc(widget.taskId)
+          .get();
+      if (taskDoc == null) {
+        return;
+      } else {
+        setState(() {
+          Timestamp joinedAtTimestamp = taskDoc.get('createdAt');
+          var uploadedDate = joinedAtTimestamp.toDate();
+          String formattedDate = DateFormat('d MMMM yyyy').format(uploadedDate);
+          uploadedOn = formattedDate;
+          //----------------
+          Timestamp deadlineTimestamp = taskDoc.get('deadlineDateTimeStamp');
+          var deadlineDate = deadlineTimestamp.toDate();
+          String formattedDeadlineDate =
+              DateFormat('d MMMM yyyy').format(deadlineDate);
+          deadlineDateTimeStamp = formattedDeadlineDate;
+          //----------------
+          isDeadlineAvailable = deadlineDate.isAfter(DateTime.now());
+          taskTitle = taskDoc.get('taskTitle');
+          taskDescription = taskDoc.get('taskDescription');
+          isDone = taskDoc.get('isDone');
+          print(taskTitle);
+        });
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +127,8 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
               Padding(
                 padding: const EdgeInsets.all(15.0),
                 child: Text(
-                  "\"Develop an App\"",
+                  taskTitle,
+                  textAlign: TextAlign.center,
                   style: GoogleFonts.montserrat(
                     fontSize: 25,
                     fontWeight: FontWeight.bold,
@@ -94,9 +166,8 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                                     width: 2,
                                     color: Colors.pink.shade800,
                                   ),
-                                  image: const DecorationImage(
-                                    image: NetworkImage(
-                                        'https://thumbs.dreamstime.com/b/close-up-photo-amazing-beautiful-gladly-modern-her-lady-long-wave-wealth-hair-toothy-beaming-smile-wearing-casual-white-t-144265512.jpg'),
+                                  image: DecorationImage(
+                                    image: NetworkImage(authorImage),
                                     fit: BoxFit.fill,
                                   ),
                                   shape: BoxShape.circle,
@@ -109,12 +180,12 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    "Maria Jad",
+                                    authorName,
                                     style: textStyle_1,
                                   ),
                                   const SizedBox(height: 5),
                                   Text(
-                                    "Web Developer",
+                                    authorPosition,
                                     style: textStyle_1,
                                   ),
                                 ],
@@ -141,7 +212,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                                     fontStyle: FontStyle.italic,
                                     fontSize: 15,
                                   ),
-                                  '${DateTime.now().year}-${DateTime.now().month}-${DateTime.now().day}'),
+                                  uploadedOn),
                             ],
                           ),
                           const SizedBox(height: 5),
@@ -158,15 +229,19 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                                     fontStyle: FontStyle.italic,
                                     fontSize: 15,
                                   ),
-                                  '${DateTime.now().year}-${DateTime.now().month}-${DateTime.now().day}'),
+                                  deadlineDateTimeStamp),
                             ],
                           ),
                           const SizedBox(height: 5),
                           Text(
-                            'Still have time',
-                            style: const TextStyle(
+                            isDeadlineAvailable
+                                ? 'Still have time'
+                                : 'The Deadline has expired',
+                            style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                color: Colors.green),
+                                color: isDeadlineAvailable
+                                    ? Colors.green
+                                    : Colors.red),
                           ),
                         ],
                       ),
@@ -186,15 +261,15 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                               doneTextButton(
                                 buttonText: 'Done',
                                 iconColor: Colors.green,
-                                onPressed: () => selectButton(0),
-                                selectedButton: 0,
+                                onPressed: () {},
+                                opacity: isDone == true ? 1 : 0,
                               ),
                               const SizedBox(width: 20),
                               doneTextButton(
                                 buttonText: 'Not Done Yet',
                                 iconColor: Colors.red,
-                                onPressed: () => selectButton(1),
-                                selectedButton: 1,
+                                onPressed: () {},
+                                opacity: isDone == false ? 1 : 0,
                               ),
                             ],
                           ),
@@ -207,7 +282,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                           ),
                           const SizedBox(height: 10),
                           Text(
-                            "Lorem Ipsum is simpt ware like Aldus PageMaker including versions of Lorem Ipsum.",
+                            taskDescription,
                             style: TextStyle(
                               color: kIndigoColor,
                               fontStyle: FontStyle.italic,
@@ -293,11 +368,12 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
     );
   }
 
-  TextButton doneTextButton(
-      {required VoidCallback onPressed,
-      required String buttonText,
-      required int selectedButton,
-      required Color iconColor}) {
+  TextButton doneTextButton({
+    required VoidCallback onPressed,
+    required String buttonText,
+    required Color iconColor,
+    required double opacity,
+  }) {
     return TextButton(
       onPressed: onPressed,
       child: Row(
@@ -311,11 +387,13 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
             ),
           ),
           const SizedBox(width: 5),
-          if (selectedButtonIndex == selectedButton)
-            Icon(
+          Opacity(
+            opacity: opacity,
+            child: Icon(
               Icons.check_box,
               color: iconColor,
-            )
+            ),
+          )
         ],
       ),
     );

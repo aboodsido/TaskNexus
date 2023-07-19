@@ -37,7 +37,7 @@ class MyApp extends StatelessWidget {
         'SignUpScreen': (context) => SignUpScreen(),
         'ForgetPassScreen': (context) => ResetPassScreen(),
         'AddTaskScreen': (context) => AddTaskScreen(),
-        'TaskDetailScreen': (context) => TaskDetailScreen(),
+        
       },
       home: const UserState(),
     );

@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:tasks_management/Screens/task_detail_screen.dart';
 import 'package:tasks_management/custom_dialog.dart';
 
 import '../Constants/consts.dart';
@@ -74,14 +75,17 @@ class _AllTasksScreenState extends State<AllTasksScreen> {
                     buildDeleteDialog(context);
                   },
                   cardOnTap: () {
-                    // widget.userId = snapshot.data!.docs[index].get('id');
-                    // Navigator.push(
-                    //   context,
-                    //   MaterialPageRoute(
-                    //     builder: (context) =>
-                    //         TaskDetailScreen(userId: widget.userId),
-                    //   ),
-                    // );
+                    widget.taskId = snapshot.data!.docs[index].get('taskId');
+                    widget.uploadedBy =
+                        snapshot.data!.docs[index].get('uploadedBy');
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => TaskDetailScreen(
+                            taskId: widget.taskId!,
+                            uploadedBy: widget.uploadedBy!),
+                      ),
+                    );
                   },
                   iconOnTap: () {},
                   cardTitle: snapshot.data!.docs[index].get('taskTitle'),
