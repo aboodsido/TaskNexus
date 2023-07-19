@@ -16,7 +16,9 @@ class UserState extends StatelessWidget {
           return LoginScreen();
         } else if (userSnapshot.hasData) {
           print('User logged in : ${userSnapshot.data!.email}');
-          return AllTasksScreen();
+          return AllTasksScreen(
+            userId: userSnapshot.data!.uid,
+          );
         } else if (userSnapshot.hasError) {
           return const Center(
             child: Text(

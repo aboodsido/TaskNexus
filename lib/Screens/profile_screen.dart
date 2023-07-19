@@ -8,6 +8,9 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../Widgets/contact_widget.dart';
+import '../Widgets/submit_button_widget.dart';
+import '../utils/auth.dart';
+import '../utils/user_state.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String? userId;
@@ -61,7 +64,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         });
         User? user = _auth.currentUser;
         String uid = user!.uid;
-        //todo: check if same user
+        setState(() {
+          isSameUser = uid == widget.userId;
+        });
+        print("isSameUser $isSameUser");
       }
     } catch (e) {
       print(e);
@@ -194,47 +200,58 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   value: phoneNumber,
                 ),
                 const SizedBox(height: 30),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    CircleAvatar(
-                      backgroundColor: Colors.green,
-                      child: IconButton(
-                        icon: const Icon(Icons.call),
-                        color: Colors.white,
-                        onPressed: () {
-                          //todo: Perform call action
-                          launchCallNumber(phoneNumber: phoneNumber);
-                        },
+                isSameUser
+                    ? Center(
+                        child: SubmitButtonWidget(
+                          buttonText: 'Logout',
+                          submitFunc: () {
+                            FirebaseAuthClass().signOut();
+                            // ignore: use_build_context_synchronously
+                            Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => const UserState()));
+                          },
+                        ),
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          CircleAvatar(
+                            backgroundColor: Colors.green,
+                            child: IconButton(
+                              icon: const Icon(Icons.call),
+                              color: Colors.white,
+                              onPressed: () {
+                                launchCallNumber(phoneNumber: phoneNumber);
+                              },
+                            ),
+                          ),
+                          CircleAvatar(
+                            backgroundColor: Colors.blue,
+                            child: IconButton(
+                              icon: const Icon(Icons.mail),
+                              color: Colors.white,
+                              onPressed: () {
+                                launchEmail(
+                                    email: email,
+                                    subject: 'hello',
+                                    body: 'this is pre-filled message');
+                              },
+                            ),
+                          ),
+                          CircleAvatar(
+                            backgroundColor: Colors.green,
+                            child: IconButton(
+                              icon: const FaIcon(FontAwesomeIcons.whatsapp),
+                              color: Colors.white,
+                              onPressed: () {
+                                launchWhatsApp(phone: phoneNumber);
+                              },
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    CircleAvatar(
-                      backgroundColor: Colors.blue,
-                      child: IconButton(
-                        icon: const Icon(Icons.mail),
-                        color: Colors.white,
-                        onPressed: () {
-                          //todo: Perform email action
-                          launchEmail(
-                              email: email,
-                              subject: 'hello',
-                              body: 'this is pre-filled message');
-                        },
-                      ),
-                    ),
-                    CircleAvatar(
-                      backgroundColor: Colors.green,
-                      child: IconButton(
-                        icon: const FaIcon(FontAwesomeIcons.whatsapp),
-                        color: Colors.white,
-                        onPressed: () {
-                          //todo: Perform WhatsApp action
-                          launchWhatsApp(phone: phoneNumber);
-                        },
-                      ),
-                    ),
-                  ],
-                ),
               ],
             ),
           ),

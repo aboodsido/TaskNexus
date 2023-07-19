@@ -11,15 +11,14 @@ class CardWidget extends StatelessWidget {
   final VoidCallback iconOnTap;
   final VoidCallback? onLongPress;
 
-  const CardWidget({
-    required this.imageUrl,
-    required this.cardTitle,
-    required this.cardSubTitle,
-    required this.cardTailIcon,
-    required this.cardOnTap,
-    required this.iconOnTap,
-    this.onLongPress
-  });
+  const CardWidget(
+      {required this.imageUrl,
+      required this.cardTitle,
+      required this.cardSubTitle,
+      required this.cardTailIcon,
+      required this.cardOnTap,
+      required this.iconOnTap,
+      this.onLongPress});
 
   @override
   Widget build(BuildContext context) {
@@ -37,13 +36,17 @@ class CardWidget extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Image.asset(
-                    imageUrl,
-                    width: 40,
-                  ),
+                  imageUrl.contains('assets/images')
+                      ? Image.asset(
+                          imageUrl,
+                          width: 40,
+                        )
+                      : Image.network(
+                          imageUrl,
+                          width: 40,
+                        ),
                   const SizedBox(width: 10),
-                  Container(
-                      height: 30, width: 1, color: kIndigoColor),
+                  Container(height: 30, width: 1, color: kIndigoColor),
                   const SizedBox(width: 10),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -87,6 +90,4 @@ class CardWidget extends StatelessWidget {
       ),
     );
   }
-
-  
 }

@@ -1,7 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:tasks_management/Screens/all_tasks_screen.dart';
 import 'package:tasks_management/Screens/profile_screen.dart';
+import 'package:tasks_management/Screens/registered_workers_screen.dart';
 import 'package:tasks_management/utils/auth.dart';
 
 import '../Constants/consts.dart';
@@ -17,6 +19,9 @@ class DrawerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    FirebaseAuth auth = FirebaseAuth.instance;
+    String userId = auth.currentUser!.uid;
+
     return Drawer(
       child: Column(
         children: [
@@ -35,15 +40,16 @@ class DrawerWidget extends StatelessWidget {
           buildListTile(
             icon: Icon(Icons.task, color: black),
             onTap: () {
-              Navigator.pushReplacementNamed(context, 'AllTasksScreen');
+              Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => AllTasksScreen(userId: userId)));
             },
             title: 'All Tasks',
           ),
           buildListTile(
             icon: Icon(Icons.settings_outlined, color: black),
             onTap: () {
-              FirebaseAuth auth = FirebaseAuth.instance;
-              String userId = auth.currentUser!.uid;
               Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
@@ -54,8 +60,11 @@ class DrawerWidget extends StatelessWidget {
           buildListTile(
             icon: Icon(Icons.people_outline, color: black),
             onTap: () {
-              Navigator.pushReplacementNamed(
-                  context, 'RegisteredWorkersScreen');
+              Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          RegisteredWorkersScreen(userId: userId)));
             },
             title: 'Registered Workers',
           ),

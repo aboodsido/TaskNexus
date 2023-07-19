@@ -1,18 +1,22 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../Constants/consts.dart';
 import '../Widgets/drawer_widget.dart';
 
 import '../Widgets/card_widget.dart';
 
 class AllTasksScreen extends StatefulWidget {
-  const AllTasksScreen({super.key});
+  String userId;
 
+  AllTasksScreen({super.key, required this.userId});
   @override
   State<AllTasksScreen> createState() => _AllTasksScreenState();
 }
 
 class _AllTasksScreenState extends State<AllTasksScreen> {
+  String? taskCategory;
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -42,19 +46,53 @@ class _AllTasksScreenState extends State<AllTasksScreen> {
           )
         ],
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.only(top: 10),
-        itemBuilder: (ctx, index) => CardWidget(
-          cardTitle: 'Test Title',
-          cardSubTitle: 'Test Subtitle',
-          imageUrl: 'assets/images/done.jpg',
-          cardTailIcon: Icons.arrow_forward_ios,
-          iconOnTap: () {},
-          cardOnTap: () {
-            Navigator.pushNamed(context, "TaskDetailScreen");
-          },
-        ),
-        itemCount: 10,
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('tasks')
+            .orderBy(descending: true, 'createdAt')
+            .where('taskCategory', isEqualTo: taskCategory)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          } else if (snapshot.connectionState == ConnectionState.active) {
+            if (snapshot.data!.docs.isNotEmpty) {
+              return ListView.builder(
+                padding: const EdgeInsets.only(top: 10),
+                itemBuilder: (ctx, index) => CardWidget(
+                  cardOnTap: () {
+                    // widget.userId = snapshot.data!.docs[index].get('id');
+                    // Navigator.push(
+                    //   context,
+                    //   MaterialPageRoute(
+                    //     builder: (context) =>
+                    //         TaskDetailScreen(userId: widget.userId),
+                    //   ),
+                    // );
+                  },
+                  iconOnTap: () {},
+                  cardTitle: snapshot.data!.docs[index].get('taskTitle'),
+                  cardSubTitle:
+                      snapshot.data!.docs[index].get('taskDescription'),
+                  cardTailIcon: Icons.arrow_forward_ios,
+                  imageUrl: snapshot.data!.docs[index].get('isDone') == false
+                      ? 'assets/images/inprogress.png'
+                      : 'assets/images/done.jpg',
+                ),
+                itemCount: snapshot.data!.docs.length,
+              );
+            } else {
+              return const Center(
+                child: Text('There is no Tasks yet'),
+              );
+            }
+          }
+          return const Center(
+            child: Text('Something went wrong'),
+          );
+        },
       ),
     );
   }
@@ -129,6 +167,9 @@ class _AllTasksScreenState extends State<AllTasksScreen> {
                         padding: const EdgeInsets.only(bottom: 20),
                         child: GestureDetector(
                           onTap: () {
+                            setState(() {
+                              taskCategory = taskCategories[index];
+                            });
                             Navigator.canPop(context)
                                 ? Navigator.pop(context)
                                 : null;
@@ -163,7 +204,14 @@ class _AllTasksScreenState extends State<AllTasksScreen> {
                             style: TextStyle(color: Colors.cyan))),
                     const SizedBox(width: 10),
                     TextButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        setState(() {
+                          taskCategory = null;
+                        });
+                        Navigator.canPop(context)
+                            ? Navigator.pop(context)
+                            : null;
+                      },
                       child: const Text('Cancel Filter',
                           style: TextStyle(color: Colors.cyan)),
                     ),

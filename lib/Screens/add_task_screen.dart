@@ -1,6 +1,11 @@
+import 'dart:math';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:tasks_management/Widgets/drawer_widget.dart';
+import 'package:uuid/uuid.dart';
 
 import '../Constants/consts.dart';
 import '../Widgets/submit_button_widget.dart';
@@ -23,7 +28,21 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   final _formKey = GlobalKey<FormState>();
 
   DateTime? picked;
+  Timestamp? _deadlineDateTimeStamp;
   String? selectedTaskCategory;
+
+  FirebaseAuth _auth = FirebaseAuth.instance;
+
+  void showSnackBar(BuildContext context, String text, Color color) {
+    final snackBar = SnackBar(
+      content: Text(text),
+      backgroundColor: color,
+      behavior: SnackBarBehavior.floating,
+      elevation: 20,
+      padding: const EdgeInsets.all(10),
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
 
   @override
   void dispose() {
@@ -34,11 +53,39 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     super.dispose();
   }
 
-  void addTask() {
+  void addTask() async {
+    User? user = _auth.currentUser;
+    String uid = user!.uid;
     final isValid = _formKey.currentState!.validate();
     FocusScope.of(context).unfocus();
     if (isValid) {
-      print("done");
+      if (_dateController.text == 'Task Date' ||
+          _categoryController.text == 'Task Category') {
+        showSnackBar(context, 'Check All Fields are filled', Colors.red);
+        return;
+      }
+      var uuid = const Uuid();
+      final taskId = uuid.v4();
+      await FirebaseFirestore.instance.collection('tasks').doc(taskId).set({
+        'taskId': taskId,
+        'uploadedBy': uid,
+        'taskTitle': _titleController.text,
+        'taskDescription': _descController.text,
+        'deadlineDate': _dateController.text,
+        'deadlineDateTimeStamp': _deadlineDateTimeStamp,
+        'taskCategory': _categoryController.text,
+        'taskComments': [],
+        'isDone': false,
+        'createdAt': Timestamp.now(),
+      });
+      // ignore: use_build_context_synchronously
+      showSnackBar(context, 'Task Added Successfully', Colors.green);
+      setState(() {
+        _categoryController.text = 'Task Category';
+        _dateController.text = 'Task Date';
+        _descController.text = '';
+        _titleController.text = '';
+      });
     } else {
       print("not done");
     }
@@ -158,10 +205,14 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
       firstDate: DateTime.now().subtract(const Duration(days: 0)),
       lastDate: DateTime(2100),
     );
-
-    _dateController.text = picked == null
-        ? _dateController.text
-        : '${picked!.year} - ${picked!.month} - ${picked!.day}';
+    if (picked != null) {
+      _dateController.text =
+          '${picked!.year} - ${picked!.month} - ${picked!.day}';
+      _deadlineDateTimeStamp =
+          Timestamp.fromMicrosecondsSinceEpoch(picked!.microsecondsSinceEpoch);
+    } else {
+      _dateController.text = _dateController.text;
+    }
   }
 
   Text text(String? text) {
