@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:tasks_management/custom_dialog.dart';
 
 import '../Constants/consts.dart';
 import '../Widgets/drawer_widget.dart';
@@ -9,6 +11,9 @@ import '../Widgets/card_widget.dart';
 
 class AllTasksScreen extends StatefulWidget {
   String userId;
+  String? taskId;
+  FirebaseAuth _auth = FirebaseAuth.instance;
+  String? uploadedBy;
 
   AllTasksScreen({super.key, required this.userId});
   @override
@@ -62,6 +67,12 @@ class _AllTasksScreenState extends State<AllTasksScreen> {
               return ListView.builder(
                 padding: const EdgeInsets.only(top: 10),
                 itemBuilder: (ctx, index) => CardWidget(
+                  onLongPress: () {
+                    widget.taskId = snapshot.data!.docs[index].get('taskId');
+                    widget.uploadedBy =
+                        snapshot.data!.docs[index].get('uploadedBy');
+                    buildDeleteDialog(context);
+                  },
                   cardOnTap: () {
                     // widget.userId = snapshot.data!.docs[index].get('id');
                     // Navigator.push(
@@ -104,18 +115,38 @@ class _AllTasksScreenState extends State<AllTasksScreen> {
         return AlertDialog(
           contentPadding: const EdgeInsets.symmetric(vertical: 20),
           content: GestureDetector(
-            onTap: () {},
+            onTap: () {
+              User? user = widget._auth.currentUser;
+              String uid = user!.uid;
+              if (uid == widget.uploadedBy) {
+                FirebaseFirestore.instance
+                    .collection('tasks')
+                    .doc(widget.taskId)
+                    .delete();
+                Navigator.pop(context);
+                CustomDialog.showSnackBar(
+                    context, 'Task Deleted Successfully', Colors.green);
+              } else {
+                Navigator.pop(context);
+                CustomDialog.showSnackBar(
+                    context,
+                    'You can not delete this task, it\'s not belong to you',
+                    Colors.red);
+              }
+            },
             child: const Row(
+              mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SizedBox(width: 5),
                 Icon(
                   Icons.delete,
                   color: Colors.red,
+                  size: 20,
                 ),
                 Text(
                   'Delete',
                   style: TextStyle(
+                    fontSize: 20,
                     color: Colors.red,
                   ),
                 ),

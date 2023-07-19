@@ -8,6 +8,7 @@ import '../../Widgets/cached_network_image.dart';
 import '../../Constants/consts.dart';
 import '../../Widgets/submit_button_widget.dart';
 import '../../Widgets/text_form_field_widget.dart';
+import '../../custom_dialog.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -29,15 +30,14 @@ class _LoginScreenState extends State<LoginScreen>
 
   bool isLoading = false;
 
-  void showSnackBar(BuildContext context, String text, Color color) {
-    final snackBar = SnackBar(
-      content: Text(text),
-      backgroundColor: color,
-      behavior: SnackBarBehavior.floating,
-      elevation: 20,
-      padding: const EdgeInsets.all(10),
-    );
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  @override
+  void dispose() {
+    _animationController.dispose();
+    _emailTextController.dispose();
+    _passwordTextController.dispose();
+    _emailFocusNode.dispose();
+    _passFocusNode.dispose();
+    super.dispose();
   }
 
   void submitFormOnLogin() async {
@@ -52,18 +52,21 @@ class _LoginScreenState extends State<LoginScreen>
             .login(_emailTextController.text, _passwordTextController.text);
 
         // ignore: use_build_context_synchronously
-        showSnackBar(context, 'Login Done Successfully', Colors.green);
+        CustomDialog.showSnackBar(
+            context, 'Login Done Successfully', Colors.green);
         // ignore: use_build_context_synchronously
         Navigator.canPop(context) ? Navigator.pop(context) : null;
       } on FirebaseAuthException catch (e) {
         if (e.code == 'user-not-found') {
-          showSnackBar(context, 'No user found for that email.', Colors.red);
+          CustomDialog.showSnackBar(
+              context, 'No user found for that email.', Colors.red);
         } else if (e.code == 'wrong-password') {
-          showSnackBar(
+          CustomDialog.showSnackBar(
               context, 'Wrong password provided for that user.', Colors.red);
         }
       } catch (e) {
-        showSnackBar(context, 'Something Wrong Happened', Colors.red);
+        CustomDialog.showSnackBar(
+            context, 'Something Wrong Happened', Colors.red);
       }
       setState(() {
         isLoading = false;
@@ -71,15 +74,7 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
-  @override
-  void dispose() {
-    _animationController.dispose();
-    _emailTextController.dispose();
-    _passwordTextController.dispose();
-    _emailFocusNode.dispose();
-    _passFocusNode.dispose();
-    super.dispose();
-  }
+  
 
   @override
   void initState() {

@@ -7,6 +7,8 @@ import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:tasks_management/utils/add_user.dart';
+import 'package:tasks_management/utils/user_state.dart';
+import '../../custom_dialog.dart';
 import '../../utils/auth.dart';
 import '../../Widgets/submit_button_widget.dart';
 
@@ -43,17 +45,6 @@ class _SignUpScreenState extends State<SignUpScreen>
 
   File? imageFile;
 
-  void showSnackBar(BuildContext context, String text, Color color) {
-    final snackBar = SnackBar(
-      content: Text(text),
-      backgroundColor: color,
-      behavior: SnackBarBehavior.floating,
-      elevation: 20,
-      padding: const EdgeInsets.all(10),
-    );
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-  }
-
   bool isLoading = false;
 
   void submitFormOnSignUp() async {
@@ -61,7 +52,8 @@ class _SignUpScreenState extends State<SignUpScreen>
     FocusScope.of(context).unfocus();
     if (isValid) {
       if (imageFile == null) {
-        showSnackBar(context, 'You must provide an Image', Colors.red);
+        CustomDialog.showSnackBar(
+            context, 'You must provide an Image', Colors.red);
         return;
       }
       setState(() {
@@ -71,7 +63,8 @@ class _SignUpScreenState extends State<SignUpScreen>
         await FirebaseAuthClass()
             .signUp(_emailTextController.text, _passwordTextController.text);
         // ignore: use_build_context_synchronously
-        showSnackBar(context, 'Sign up Done Successfully', Colors.green);
+        CustomDialog.showSnackBar(
+            context, 'Sign up Done Successfully', Colors.green);
 
         await AddUser().addUsersData(
             fullName: _fullNameTextController.text,
@@ -82,16 +75,19 @@ class _SignUpScreenState extends State<SignUpScreen>
 
         // ignore: use_build_context_synchronously
         Navigator.pop(context);
+        // ignore: use_build_context_synchronously
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (context) => const UserState()));
       } on FirebaseAuthException catch (e) {
         if (e.code == 'weak-password') {
-          showSnackBar(
+          CustomDialog.showSnackBar(
               context, 'The password provided is too weak.', Colors.red);
         } else if (e.code == 'email-already-in-use') {
-          showSnackBar(context, 'The account already exists for that email.',
-              Colors.red);
+          CustomDialog.showSnackBar(context,
+              'The account already exists for that email.', Colors.red);
         }
       } catch (e) {
-        showSnackBar(context, '$e', Colors.red);
+        CustomDialog.showSnackBar(context, '$e', Colors.red);
       }
       setState(() {
         isLoading = false;

@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../Widgets/contact_widget.dart';
 import '../Widgets/submit_button_widget.dart';
+import '../custom_dialog.dart';
 import '../utils/auth.dart';
 import '../utils/user_state.dart';
 
@@ -85,10 +86,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       try {
         await launchUrl(url);
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text("Whatsapp is not installed"),
-          backgroundColor: Colors.red,
-        ));
+        CustomDialog.showSnackBar(
+            context, "Whatsapp is not installed", Colors.red);
       }
     }
 
@@ -103,10 +102,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       try {
         await launchUrl(url);
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text("Could not send email for some issues"),
-          backgroundColor: Colors.red,
-        ));
+        CustomDialog.showSnackBar(
+            context, "Could not send email for some issues", Colors.red);
       }
     }
 
@@ -117,10 +114,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       try {
         await launchUrl(url);
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text("Could not call this number"),
-          backgroundColor: Colors.red,
-        ));
+        CustomDialog.showSnackBar(
+            context, "Could not call this number", Colors.red);
       }
     }
 

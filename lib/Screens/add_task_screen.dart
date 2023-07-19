@@ -9,6 +9,7 @@ import 'package:uuid/uuid.dart';
 
 import '../Constants/consts.dart';
 import '../Widgets/submit_button_widget.dart';
+import '../custom_dialog.dart';
 
 class AddTaskScreen extends StatefulWidget {
   const AddTaskScreen({super.key});
@@ -33,16 +34,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
 
   FirebaseAuth _auth = FirebaseAuth.instance;
 
-  void showSnackBar(BuildContext context, String text, Color color) {
-    final snackBar = SnackBar(
-      content: Text(text),
-      backgroundColor: color,
-      behavior: SnackBarBehavior.floating,
-      elevation: 20,
-      padding: const EdgeInsets.all(10),
-    );
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-  }
+
 
   @override
   void dispose() {
@@ -61,7 +53,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     if (isValid) {
       if (_dateController.text == 'Task Date' ||
           _categoryController.text == 'Task Category') {
-        showSnackBar(context, 'Check All Fields are filled', Colors.red);
+        CustomDialog.showSnackBar(context, 'Check All Fields are filled', Colors.red);
         return;
       }
       var uuid = const Uuid();
@@ -79,7 +71,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
         'createdAt': Timestamp.now(),
       });
       // ignore: use_build_context_synchronously
-      showSnackBar(context, 'Task Added Successfully', Colors.green);
+      CustomDialog.showSnackBar(context, 'Task Added Successfully', Colors.green);
       setState(() {
         _categoryController.text = 'Task Category';
         _dateController.text = 'Task Date';
