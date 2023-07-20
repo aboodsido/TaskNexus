@@ -28,7 +28,7 @@ class DrawerWidget extends StatelessWidget {
           UserAccountsDrawerHeader(
             accountName: Text('Tasks Management',
                 style: GoogleFonts.montserrat(fontSize: 20)),
-            accountEmail: Text('Welcome!', style: textFont),
+            accountEmail: Text('Welcome! ', style: textFont),
             currentAccountPicture: ClipRRect(
               borderRadius: BorderRadius.circular(100),
               child: Image.asset(
@@ -36,6 +36,16 @@ class DrawerWidget extends StatelessWidget {
                 fit: BoxFit.fill,
               ),
             ),
+          ),
+          buildListTile(
+            icon: Icon(Icons.person_2_outlined, color: black),
+            onTap: () {
+              Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => ProfileScreen(userId: userId)));
+            },
+            title: 'My Account',
           ),
           buildListTile(
             icon: Icon(Icons.task, color: black),
@@ -46,16 +56,6 @@ class DrawerWidget extends StatelessWidget {
                       builder: (context) => AllTasksScreen(userId: userId)));
             },
             title: 'All Tasks',
-          ),
-          buildListTile(
-            icon: Icon(Icons.settings_outlined, color: black),
-            onTap: () {
-              Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => ProfileScreen(userId: userId)));
-            },
-            title: 'My Account',
           ),
           buildListTile(
             icon: Icon(Icons.people_outline, color: black),

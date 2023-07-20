@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class TitleTextField extends StatelessWidget {
-  const TitleTextField({required this.title});
+  const TitleTextField({super.key, required this.title});
 
   final String title;
 

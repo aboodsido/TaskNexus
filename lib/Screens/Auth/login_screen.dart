@@ -4,13 +4,15 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:tasks_management/utils/auth.dart';
 
-import '../../Widgets/cached_network_image.dart';
 import '../../Constants/consts.dart';
+import '../../Widgets/cached_network_image.dart';
 import '../../Widgets/submit_button_widget.dart';
 import '../../Widgets/text_form_field_widget.dart';
 import '../../custom_dialog.dart';
 
 class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
@@ -73,8 +75,6 @@ class _LoginScreenState extends State<LoginScreen>
       });
     }
   }
-
-  
 
   @override
   void initState() {

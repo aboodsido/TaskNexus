@@ -6,14 +6,13 @@ import 'package:tasks_management/Screens/task_detail_screen.dart';
 import 'package:tasks_management/custom_dialog.dart';
 
 import '../Constants/consts.dart';
-import '../Widgets/drawer_widget.dart';
-
 import '../Widgets/card_widget.dart';
+import '../Widgets/drawer_widget.dart';
 
 class AllTasksScreen extends StatefulWidget {
   String userId;
   String? taskId;
-  FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   String? uploadedBy;
 
   AllTasksScreen({super.key, required this.userId});

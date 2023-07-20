@@ -12,7 +12,8 @@ class CardWidget extends StatelessWidget {
   final VoidCallback? onLongPress;
 
   const CardWidget(
-      {required this.imageUrl,
+      {super.key,
+      required this.imageUrl,
       required this.cardTitle,
       required this.cardSubTitle,
       required this.cardTailIcon,

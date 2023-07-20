@@ -7,7 +7,7 @@
         </intent>
     </queries>
     <application
-        android:label="tasks_management"
+        android:label="TaskNexus"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

@@ -74,10 +74,8 @@ class _SignUpScreenState extends State<SignUpScreen>
             imageFile: imageFile!);
 
         // ignore: use_build_context_synchronously
-        Navigator.pop(context);
-        // ignore: use_build_context_synchronously
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => const UserState()));
+        Navigator.pushReplacement(context,
+            MaterialPageRoute(builder: (context) => const UserState()));
       } on FirebaseAuthException catch (e) {
         if (e.code == 'weak-password') {
           CustomDialog.showSnackBar(
@@ -119,7 +117,9 @@ class _SignUpScreenState extends State<SignUpScreen>
     try {
       XFile? pickedFile = await ImagePicker().pickImage(
           source: ImageSource.camera, maxWidth: 1080, maxHeight: 1080);
-      cropImage(pickedFile!.path);
+      if (pickedFile != null) {
+        cropImage(pickedFile.path);
+      }
     } on Exception catch (e) {
       print(e);
     }
@@ -129,7 +129,9 @@ class _SignUpScreenState extends State<SignUpScreen>
     try {
       XFile? pickedFile = await ImagePicker().pickImage(
           source: ImageSource.gallery, maxWidth: 1080, maxHeight: 1080);
-      cropImage(pickedFile!.path);
+      if (pickedFile != null) {
+        cropImage(pickedFile.path);
+      }
     } on Exception catch (e) {
       print(e);
     }
@@ -543,7 +545,6 @@ class _SignUpScreenState extends State<SignUpScreen>
                 onTap: () {
                   pickImageWithCamera();
                   Navigator.pop(context);
-                  print('done');
                 }),
             const SizedBox(height: 15),
             rowImage(
@@ -552,7 +553,6 @@ class _SignUpScreenState extends State<SignUpScreen>
               onTap: () {
                 pickImageFromGallery();
                 Navigator.pop(context);
-                print('done');
               },
             ),
           ],
