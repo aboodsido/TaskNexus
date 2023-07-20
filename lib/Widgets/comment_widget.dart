@@ -1,10 +1,18 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:tasks_management/Screens/profile_screen.dart';
 
 // ignore: must_be_immutable
 class CommentWidget extends StatelessWidget {
-   CommentWidget({super.key});
+  String commenterName = '';
+  String? commenterImage;
+  String commentBody = '';
+  Timestamp? commentTimestamp;
+  String commentId = '';
+  String uploadedBy = '';
 
-   List<Color> colors = [
+  List<Color> colors = [
     Colors.blue.shade700,
     Colors.orange.shade900,
     Colors.brown.shade300,
@@ -14,48 +22,89 @@ class CommentWidget extends StatelessWidget {
     Colors.pink.shade700,
   ];
 
+  CommentWidget({
+    super.key,
+    required this.commenterName,
+    required this.commentBody,
+    required this.commentTimestamp,
+    required this.commenterImage,
+    required this.commentId,
+    required this.uploadedBy,
+  });
 
   @override
   Widget build(BuildContext context) {
+    var uploadedDate = commentTimestamp!.toDate();
+    String formattedDate = DateFormat.jm().add_MEd().format(uploadedDate);
+
     colors.shuffle();
     return Container(
       margin: const EdgeInsets.all(5),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    width: 2,
-                    color: colors[0],
-                  ),
-                  image: const DecorationImage(
-                    image: NetworkImage(
-                        'https://thumbs.dreamstime.com/b/close-up-photo-amazing-beautiful-gladly-modern-her-lady-long-wave-wealth-hair-toothy-beaming-smile-wearing-casual-white-t-144265512.jpg'),
-                    fit: BoxFit.fill,
-                  ),
-                  shape: BoxShape.circle,
+              InkWell(
+                onLongPress: (){
+                  
+                },
+                child: Row(
+                  children: [
+                    InkWell(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                ProfileScreen(userId: uploadedBy),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            width: 2,
+                            color: colors[0],
+                          ),
+                          image: DecorationImage(
+                            image: NetworkImage(commenterImage == null
+                                ? 'https://t4.ftcdn.net/jpg/00/84/67/19/360_F_84671939_jxymoYZO8Oeacc3JRBDE8bSXBWj0ZfA9.jpg'
+                                : commenterImage!),
+                            fit: BoxFit.fill,
+                          ),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      commenterName,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontStyle: FontStyle.italic,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(width: 5),
-              const Text(
-                'Maria Jad',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontStyle: FontStyle.italic,
-                  fontSize: 18,
-                ),
+              Text(
+                formattedDate,
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
               ),
             ],
           ),
-          const Padding(
-            padding: EdgeInsets.only(left: 50),
+          const SizedBox(height: 10),
+          Padding(
+            padding: const EdgeInsets.only(left: 40),
             child: Text(
-              "This is task is good when it reach the requirments This is task is good when it reach the requirments This is task is good when it reach the requirments",
-              style: TextStyle(color: Colors.grey),
+              commentBody,
+              textAlign: TextAlign.left,
+              style: TextStyle(color: Colors.grey.shade700),
             ),
           ),
         ],

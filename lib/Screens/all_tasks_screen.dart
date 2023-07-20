@@ -11,9 +11,9 @@ import '../Widgets/drawer_widget.dart';
 
 class AllTasksScreen extends StatefulWidget {
   String userId;
-  String? taskId;
+  String taskId = '';
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  String? uploadedBy;
+  String uploadedBy = '';
 
   AllTasksScreen({super.key, required this.userId});
   @override
@@ -27,7 +27,7 @@ class _AllTasksScreenState extends State<AllTasksScreen> {
     Size size = MediaQuery.of(context).size;
 
     return Scaffold(
-      drawer: DrawerWidget(),
+      drawer: const DrawerWidget(),
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.black),
         elevation: 0,
@@ -81,8 +81,8 @@ class _AllTasksScreenState extends State<AllTasksScreen> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => TaskDetailScreen(
-                            taskId: widget.taskId!,
-                            uploadedBy: widget.uploadedBy!),
+                            taskId: widget.taskId,
+                            uploadedBy: widget.uploadedBy),
                       ),
                     );
                   },

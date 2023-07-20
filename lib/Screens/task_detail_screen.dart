@@ -5,17 +5,18 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:tasks_management/custom_dialog.dart';
+import 'package:uuid/uuid.dart';
 
 import '../Constants/consts.dart';
 import '../Widgets/comment_widget.dart';
 import '../Widgets/submit_button_widget.dart';
 
 class TaskDetailScreen extends StatefulWidget {
-  final String taskId;
+  String taskId = '';
   final String uploadedBy;
+  String userId = '';
 
-  const TaskDetailScreen(
-      {super.key, required this.taskId, required this.uploadedBy});
+  TaskDetailScreen({super.key, required this.taskId, required this.uploadedBy});
 
   @override
   State<TaskDetailScreen> createState() => _TaskDetailScreenState();
@@ -49,7 +50,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
 
   String authorName = '';
   String authorPosition = '';
-  String authorImage = '';
+  String? authorImage;
   String uploadedOn = '';
   String deadlineDate = '';
   String deadlineDateTimeStamp = '';
@@ -58,6 +59,8 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
   bool isDone = false;
   bool isDeadlineAvailable = false;
   List<String> taskComments = [];
+  String commenterName = '';
+  String? commenterImage;
 
   void getUserUploadedTask() async {
     try {
@@ -73,13 +76,15 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
         return;
       } else {
         setState(() {
-          authorName = userkDoc.get('fullName');
           authorPosition = userkDoc.get('companyPosition');
+          authorName = userkDoc.get('fullName');
           authorImage = userkDoc.get('imageUrl');
         });
       }
     } catch (e) {
-      CustomDialog.showSnackBar(context, e.toString(), Colors.red);
+      if (mounted) {
+        CustomDialog.showSnackBar(context, e.toString(), Colors.red);
+      }
     } finally {
       setState(() {
         isLoading = false;
@@ -124,6 +129,39 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
         isLoading = false;
       });
     }
+  }
+
+  Future<void> addComment(BuildContext context) async {
+    final commentId = const Uuid().v4();
+
+    User? user = _auth.currentUser;
+    String uid = user!.uid;
+
+    DocumentSnapshot userkDoc =
+        await FirebaseFirestore.instance.collection('users').doc(uid).get();
+
+    await FirebaseFirestore.instance
+        .collection('tasks')
+        .doc(widget.taskId)
+        .update({
+      'taskComments': FieldValue.arrayUnion([
+        {
+          'userId': uid,
+          'commentId': commentId,
+          'commenterName': userkDoc.get('fullName'),
+          'commenterImage': userkDoc.get('imageUrl'),
+          'commentBody': commentFieldController.text,
+          'time': Timestamp.now(),
+        }
+      ]),
+    });
+    // ignore: use_build_context_synchronously
+    if (mounted) {
+      CustomDialog.showSnackBar(
+          context, 'Comment Added Successfully', Colors.green);
+    }
+    commentFieldController.clear();
+    setState(() {});
   }
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -192,7 +230,9 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                                       color: Colors.pink.shade800,
                                     ),
                                     image: DecorationImage(
-                                      image: NetworkImage(authorImage),
+                                      image: NetworkImage(authorImage == null
+                                          ? 'https://t4.ftcdn.net/jpg/00/84/67/19/360_F_84671939_jxymoYZO8Oeacc3JRBDE8bSXBWj0ZfA9.jpg'
+                                          : authorImage!),
                                       fit: BoxFit.fill,
                                     ),
                                     shape: BoxShape.circle,
@@ -389,8 +429,19 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                                       child: Column(
                                         children: [
                                           SubmitButtonWidget(
-                                              submitFunc: () {
-                                                //todo: add comment to screen & firebase
+                                              submitFunc: () async {
+                                                if (commentFieldController
+                                                        .text.length <=
+                                                    7) {
+                                                  if (mounted) {
+                                                    CustomDialog.showSnackBar(
+                                                        context,
+                                                        'You Should post a valid comment',
+                                                        Colors.red);
+                                                  }
+                                                } else {
+                                                  await addComment(context);
+                                                }
                                               },
                                               buttonText: 'Post'),
                                           const SizedBox(height: 5),
@@ -409,13 +460,57 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                               ),
                             ),
                             const SizedBox(height: 10),
-                            ListView.separated(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemBuilder: (ctx, index) => CommentWidget(),
-                              separatorBuilder: (ctx, index) => const Divider(),
-                              itemCount: 10,
-                            ),
+                            FutureBuilder<DocumentSnapshot>(
+                                future: FirebaseFirestore.instance
+                                    .collection('tasks')
+                                    .doc(widget.taskId)
+                                    .get(),
+                                builder: ((context, snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return const Center(
+                                        child:
+                                            CircularProgressIndicator()); // Show a loading indicator while data is being fetched
+                                  }
+                                  if (snapshot.hasError) {
+                                    return Text('Error: ${snapshot.error}');
+                                  }
+                                  if (snapshot.data == null) {
+                                    return Container();
+                                  }
+                                  return ListView.separated(
+                                    reverse: true,
+                                    shrinkWrap: true,
+                                    physics:
+                                        const NeverScrollableScrollPhysics(),
+                                    itemBuilder: (ctx, index) {
+                                      return CommentWidget(
+                                        commentBody:
+                                            snapshot.data!['taskComments']
+                                                [index]['commentBody'],
+                                        commenterImage:
+                                            snapshot.data!['taskComments']
+                                                [index]['commenterImage'],
+                                        commenterName:
+                                            snapshot.data!['taskComments']
+                                                [index]['commenterName'],
+                                        commentTimestamp:
+                                            snapshot.data!['taskComments']
+                                                [index]['time'],
+                                        commentId:
+                                            snapshot.data!['taskComments']
+                                                [index]['commentId'],
+                                        uploadedBy:
+                                            snapshot.data!['taskComments']
+                                                [index]['userId'],
+                                      );
+                                    },
+                                    separatorBuilder: (ctx, index) =>
+                                        const Divider(),
+                                    itemCount:
+                                        snapshot.data!['taskComments'].length,
+                                  );
+                                })),
                           ],
                         ),
                       ],

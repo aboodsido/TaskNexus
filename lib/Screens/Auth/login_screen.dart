@@ -67,8 +67,10 @@ class _LoginScreenState extends State<LoginScreen>
               context, 'Wrong password provided for that user.', Colors.red);
         }
       } catch (e) {
-        CustomDialog.showSnackBar(
-            context, 'Something Wrong Happened', Colors.red);
+        if (mounted) {
+          CustomDialog.showSnackBar(
+              context, 'Something Wrong Happened', Colors.red);
+        }
       }
       setState(() {
         isLoading = false;

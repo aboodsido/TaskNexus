@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,15 +8,55 @@ import 'package:tasks_management/Screens/registered_workers_screen.dart';
 import 'package:tasks_management/utils/auth.dart';
 
 import '../Constants/consts.dart';
+import '../custom_dialog.dart';
 import '../utils/user_state.dart';
 
 // ignore: must_be_immutable
-class DrawerWidget extends StatelessWidget {
-  DrawerWidget({
+class DrawerWidget extends StatefulWidget {
+  const DrawerWidget({
     super.key,
   });
 
+  @override
+  State<DrawerWidget> createState() => _DrawerWidgetState();
+}
+
+class _DrawerWidgetState extends State<DrawerWidget> {
   Color black = Colors.black;
+
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  String userName = '';
+  String? userImage;
+
+  @override
+  void initState() {
+    getPersonData();
+    super.initState();
+  }
+
+  void getPersonData() async {
+    User? user = _auth.currentUser;
+    String uid = user!.uid;
+
+    try {
+      DocumentSnapshot userkDoc =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+
+      if (userkDoc != null) {
+        setState(() {
+          userName = userkDoc.get('fullName');
+          userImage = userkDoc.get('imageUrl');
+        });
+      } else {
+        return;
+      }
+    } catch (e) {
+      if (mounted) {
+        CustomDialog.showSnackBar(context, e.toString(), Colors.red);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,13 +67,15 @@ class DrawerWidget extends StatelessWidget {
       child: Column(
         children: [
           UserAccountsDrawerHeader(
-            accountName: Text('Tasks Management',
-                style: GoogleFonts.montserrat(fontSize: 20)),
+            accountName:
+                Text(userName, style: GoogleFonts.montserrat(fontSize: 20)),
             accountEmail: Text('Welcome! ', style: textFont),
             currentAccountPicture: ClipRRect(
               borderRadius: BorderRadius.circular(100),
-              child: Image.asset(
-                'assets/images/appicon.jpg',
+              child: Image.network(
+                userImage == null
+                    ? 'https://t4.ftcdn.net/jpg/00/84/67/19/360_F_84671939_jxymoYZO8Oeacc3JRBDE8bSXBWj0ZfA9.jpg'
+                    : userImage!,
                 fit: BoxFit.fill,
               ),
             ),
