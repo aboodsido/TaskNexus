@@ -28,9 +28,14 @@ class ContactDetail extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 8),
-        Text(
-          value,
-          style: TextStyle(fontSize: 16, color: kIndigoColor),
+        Expanded(
+          child: Text(
+            value,
+            softWrap: true,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+            style: TextStyle(fontSize: 16, color: kIndigoColor),
+          ),
         ),
       ],
     );

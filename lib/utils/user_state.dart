@@ -13,7 +13,7 @@ class UserState extends StatelessWidget {
       builder: (context, userSnapshot) {
         if (userSnapshot.data == null) {
           print('User did not login yet');
-          return LoginScreen();
+          return const LoginScreen();
         } else if (userSnapshot.hasData) {
           print('User logged in : ${userSnapshot.data!.email}');
           return AllTasksScreen(

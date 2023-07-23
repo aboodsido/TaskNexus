@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:tasks_management/Screens/add_task_screen.dart';
 import 'package:tasks_management/Screens/task_detail_screen.dart';
 import 'package:tasks_management/custom_dialog.dart';
 
@@ -27,6 +28,7 @@ class _AllTasksScreenState extends State<AllTasksScreen> {
     Size size = MediaQuery.of(context).size;
 
     return Scaffold(
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       drawer: const DrawerWidget(),
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.black),
@@ -51,62 +53,95 @@ class _AllTasksScreenState extends State<AllTasksScreen> {
           )
         ],
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('tasks')
-            .orderBy(descending: true, 'createdAt')
-            .where('taskCategory', isEqualTo: taskCategory)
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          } else if (snapshot.connectionState == ConnectionState.active) {
-            if (snapshot.data!.docs.isNotEmpty) {
-              return ListView.builder(
-                padding: const EdgeInsets.only(top: 10),
-                itemBuilder: (ctx, index) => CardWidget(
-                  onLongPress: () {
-                    widget.taskId = snapshot.data!.docs[index].get('taskId');
-                    widget.uploadedBy =
-                        snapshot.data!.docs[index].get('uploadedBy');
-                    buildDeleteDialog(context);
-                  },
-                  cardOnTap: () {
-                    widget.taskId = snapshot.data!.docs[index].get('taskId');
-                    widget.uploadedBy =
-                        snapshot.data!.docs[index].get('uploadedBy');
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => TaskDetailScreen(
-                            taskId: widget.taskId,
-                            uploadedBy: widget.uploadedBy),
-                      ),
-                    );
-                  },
-                  iconOnTap: () {},
-                  cardTitle: snapshot.data!.docs[index].get('taskTitle'),
-                  cardSubTitle:
-                      snapshot.data!.docs[index].get('taskDescription'),
-                  cardTailIcon: Icons.arrow_forward_ios,
-                  imageUrl: snapshot.data!.docs[index].get('isDone') == false
-                      ? 'assets/images/inprogress.png'
-                      : 'assets/images/done.jpg',
-                ),
-                itemCount: snapshot.data!.docs.length,
-              );
-            } else {
+      body: Stack(
+        children: [
+          StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('tasks')
+                .orderBy(descending: true, 'createdAt')
+                .where('taskCategory', isEqualTo: taskCategory)
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              } else if (snapshot.connectionState == ConnectionState.active) {
+                if (snapshot.data!.docs.isNotEmpty) {
+                  return ListView.builder(
+                    padding: const EdgeInsets.only(top: 10),
+                    itemBuilder: (ctx, index) => CardWidget(
+                      onLongPress: () {
+                        widget.taskId =
+                            snapshot.data!.docs[index].get('taskId');
+                        widget.uploadedBy =
+                            snapshot.data!.docs[index].get('uploadedBy');
+                        buildDeleteDialog(context);
+                      },
+                      cardOnTap: () {
+                        widget.taskId =
+                            snapshot.data!.docs[index].get('taskId');
+                        widget.uploadedBy =
+                            snapshot.data!.docs[index].get('uploadedBy');
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => TaskDetailScreen(
+                                taskId: widget.taskId,
+                                uploadedBy: widget.uploadedBy),
+                          ),
+                        );
+                      },
+                      iconOnTap: () {},
+                      cardTitle: snapshot.data!.docs[index].get('taskTitle'),
+                      cardSubTitle:
+                          snapshot.data!.docs[index].get('taskDescription'),
+                      cardTailIcon: Icons.arrow_forward_ios,
+                      imageUrl:
+                          snapshot.data!.docs[index].get('isDone') == false
+                              ? 'assets/images/inprogress.png'
+                              : 'assets/images/done.jpg',
+                    ),
+                    itemCount: snapshot.data!.docs.length,
+                  );
+                } else {
+                  return const Center(
+                    child: Text('There is no Tasks yet'),
+                  );
+                }
+              }
               return const Center(
-                child: Text('There is no Tasks yet'),
+                child: Text('Something went wrong'),
               );
-            }
-          }
-          return const Center(
-            child: Text('Something went wrong'),
-          );
-        },
+            },
+          ),
+          Positioned(
+            bottom: 20,
+            right: 20,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AddTaskScreen(),
+                  ),
+                );
+              },
+              child: Container(
+                width: 60,
+                height: 60,
+                decoration: ShapeDecoration(
+                  color: Colors.pink.shade600,
+                  shape: const OvalBorder(),
+                ),
+                child: const Icon(
+                  Icons.add_outlined,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

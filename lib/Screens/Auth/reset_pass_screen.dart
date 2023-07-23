@@ -2,13 +2,17 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../Widgets/submit_button_widget.dart';
+import 'package:tasks_management/utils/auth.dart';
 
 import '../../Widgets/cached_network_image.dart';
+import '../../Widgets/submit_button_widget.dart';
 import '../../Widgets/text_form_field_widget.dart';
 import '../../Widgets/title_textfield_widget.dart';
+import '../../custom_dialog.dart';
 
 class ResetPassScreen extends StatefulWidget {
+  const ResetPassScreen({super.key});
+
   @override
   _ResetPassScreenState createState() => _ResetPassScreenState();
 }
@@ -18,14 +22,24 @@ class _ResetPassScreenState extends State<ResetPassScreen>
   late AnimationController _animationController;
   late Animation<double> _animation;
 
-  TextEditingController? _emailTextController;
+  final TextEditingController _emailTextController = TextEditingController();
   final _forgetPassFormKey = GlobalKey<FormState>();
 
-  void submitFormOnForgetPass() {
+  void submitFormOnForgetPass() async {
     final isValid = _forgetPassFormKey.currentState!.validate();
     FocusScope.of(context).unfocus();
     if (isValid) {
-      print("done");
+      try {
+        await FirebaseAuthClass().resetPassword(_emailTextController.text);
+
+        // ignore: use_build_context_synchronously
+        CustomDialog.showSnackBar(context,
+            'Reset Password Complete , Go Check Your Email', Colors.green);
+      } catch (e) {
+        CustomDialog.showSnackBar(
+            context, 'There is an error : $e', Colors.red);
+        print(e);
+      }
     } else {
       print("not done");
     }
@@ -34,7 +48,7 @@ class _ResetPassScreenState extends State<ResetPassScreen>
   @override
   void dispose() {
     _animationController.dispose();
-    _emailTextController?.dispose();
+    _emailTextController.dispose();
     super.dispose();
   }
 
@@ -60,6 +74,12 @@ class _ResetPassScreenState extends State<ResetPassScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        iconTheme: const IconThemeData(color: Colors.white),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+      ),
       body: Stack(
         children: [
           CachedNetworkImageWidget(animation: _animation),
